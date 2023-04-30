@@ -1,0 +1,28 @@
+env:
+  - CGO_ENABLED=1
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - wget -q "https://www.loldrivers.io/api/drivers.json" -O pkg/loldrivers/drivers.json
+    - go mod tidy
+builds:
+  - id: windows
+    ldflags:
+      - -s -w
+    binary: 'LOLDrivers-client'
+    main: ./cli/loldrivers-client/loldrivers-client.go
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - 
+    format: zip
+    name_template: >-
+      LOLDrivers-client_Windows_{{ .Arch }}
+    files:
+      - "README.md"
+    rlcp: true
