@@ -4,7 +4,6 @@ env:
 
 before:
   hooks:
-    - wget -q "https://www.loldrivers.io/api/drivers.json" -O pkg/loldrivers/drivers.json
     - go mod tidy
 builds:
   - id: windows
