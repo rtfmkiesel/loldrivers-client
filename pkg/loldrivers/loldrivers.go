@@ -26,23 +26,17 @@ const (
 // Based on the the JSON spec from
 // https://github.com/magicsword-io/LOLDrivers/blob/validate/bin/spec/drivers.spec.json
 type Driver struct {
-	Name     string `json:"Name"`
-	Author   string `json:"Author"`
-	Created  string `json:"Created"`
-	MitreID  string `json:"MitreID"`
-	Category string `json:"Category"`
-	Verified string `json:"Verified"`
-	Commands struct {
-		Command         string `json:"Command"`
-		Description     string `json:"Description"`
-		Usecase         string `json:"Usecase"`
-		Privileges      string `json:"Privileges"`
-		OperatingSystem string `json:"OperatingSystem"`
-	} `json:"Commands"`
-	Resources       []string `json:"Resources"`
+	Name            string            `json:"Name"`
+	Author          string            `json:"Author"`
+	Created         string            `json:"Created"`
+	MitreID         string            `json:"MitreID"`
+	Category        string            `json:"Category"`
+	Verified        string            `json:"Verified"`
+	Commands        UnmarshalCommands `json:"Commands"`
+	Resources       []string          `json:"Resources"`
 	Acknowledgement struct {
-		Person string `json:"Person"`
-		Handle string `json:"Handle"`
+		Person StringOrStringArray `json:"Person"`
+		Handle string              `json:"Handle"`
 	} `json:"Acknowledgement"`
 	Detection []struct {
 		Type  string `json:"type"`
@@ -76,6 +70,25 @@ type Driver struct {
 	} `json:"KnownVulnerableSamples"`
 }
 
+// 'Command' struct for a driver from loldrivers.io
+//
+// Based on the the JSON spec from
+// https://github.com/magicsword-io/LOLDrivers/blob/validate/bin/spec/drivers.spec.json
+type Command struct {
+	Command         string `json:"Command"`
+	Description     string `json:"Description"`
+	Usecase         string `json:"Usecase"`
+	Privileges      string `json:"Privileges"`
+	OperatingSystem string `json:"OperatingSystem"`
+}
+
+// Struct that is used during unmarshalling of the JSON data
+// since sometimes "Commands" will be either a single string or a "Command" struct
+type UnmarshalCommands struct {
+	Value []Command
+	Set   bool
+}
+
 // Struct that is used during unmarshalling of the JSON data
 // since sometimes a key can be either a single string or an array of strings
 type StringOrStringArray struct {
@@ -83,11 +96,37 @@ type StringOrStringArray struct {
 	Set   bool
 }
 
-// Struct to store driver hashes
+// Struct to store the driver hashes from loldrivers.io
 type DriverHashes struct {
 	MD5Sums    []string
 	SHA1Sums   []string
 	SHA256Sums []string
+}
+
+// The UnmarshalJSON method on UnmarshalCommands will parse the JSON
+// as eiter a "Command" struct or a single string (into a "Command" struct)
+func (s *UnmarshalCommands) UnmarshalJSON(b []byte) error {
+	var strVal string
+	var cmdVal Command
+	// Try to unmarshal into a string first
+	err := json.Unmarshal(b, &strVal)
+	if err == nil {
+		// No error, set string value, leave rest empty
+		cmdVal = Command{
+			Command: strVal,
+		}
+	} else {
+		// Try to unmarshall into a "Command" struct
+		err = json.Unmarshal(b, &cmdVal)
+		if err != nil {
+			// Both unmarshall were unsuccessful
+			return err
+		}
+	}
+	// Set the value of s to the unmarshalled value
+	s.Value = append(s.Value, cmdVal)
+	s.Set = true
+	return nil
 }
 
 // The UnmarshalJSON method will parse the JSON as either a single string
