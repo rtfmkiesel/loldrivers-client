@@ -71,8 +71,8 @@ Options:
 		drivers, err = loldrivers.Get()
 		if err != nil {
 			// There was a parsing error
-			logger.Verbose(fmt.Sprintf("ERROR: %s", err))
-			logger.Log("Error while parsing online data. Falling back to internal data set")
+			logger.Catch(err)
+			logger.Log("[!] Got an error while parsing online data. Falling back to internal data set")
 			drivers, err = loldrivers.Parse(loldrivers.InternalDrivers)
 			if err != nil {
 				logger.CatchCrit(err)
@@ -95,8 +95,8 @@ Options:
 		drivers, err = loldrivers.Parse(jsonBytes)
 		if err != nil {
 			// There was a parsing error
-			logger.Verbose(fmt.Sprintf("ERROR: %s", err))
-			logger.Log("Error while parsing local file. Falling back to internal data set")
+			logger.Catch(err)
+			logger.Log("[!] Got an error while parsing local file. Falling back to internal data set")
 			drivers, err = loldrivers.Parse(loldrivers.InternalDrivers)
 			if err != nil {
 				logger.CatchCrit(err)
