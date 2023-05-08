@@ -26,48 +26,29 @@ const (
 // Based on the the JSON spec from
 // https://github.com/magicsword-io/LOLDrivers/blob/validate/bin/spec/drivers.spec.json
 type Driver struct {
-	Name            string            `json:"Name"`
+	ID              string            `json:"Id"`
 	Author          string            `json:"Author"`
 	Created         string            `json:"Created"`
 	MitreID         string            `json:"MitreID"`
 	Category        string            `json:"Category"`
 	Verified        string            `json:"Verified"`
-	Commands        UnmarshalCommands `json:"Commands"`
-	Resources       []string          `json:"Resources"`
+	Commands        UnmarshalCommands `json:"Commands,omitempty"`
+	Resources       []string          `json:"Resources,omitempty"`
 	Acknowledgement struct {
 		Person StringOrStringArray `json:"Person"`
 		Handle string              `json:"Handle"`
-	} `json:"Acknowledgement"`
+	} `json:"Acknowledgement,omitempty"`
 	Detection []struct {
 		Type  string `json:"type"`
 		Value string `json:"value"`
-	} `json:"Detection"`
+	} `json:"Detection,omitempty"`
 	KnownVulnerableSamples []struct {
-		Filename         string              `json:"Filename"`
-		MD5              string              `json:"MD5"`
-		SHA1             string              `json:"SHA1"`
-		SHA256           string              `json:"SHA256"`
-		Signature        StringOrStringArray `json:"Signature"`
-		Date             string              `json:"Date"`
-		Publisher        string              `json:"Publisher"`
-		Company          string              `json:"Company"`
-		Description      string              `json:"Description"`
-		Product          string              `json:"Product"`
-		ProductVersion   string              `json:"ProductVersion"`
-		FileVersion      string              `json:"FileVersion"`
-		MachineType      string              `json:"MachineType"`
-		OriginalFilename string              `json:"OriginalFilename"`
-		Authentihash     struct {
-			MD5    string `json:"MD5"`
-			SHA1   string `json:"SHA1"`
-			SHA256 string `json:"SHA256"`
-		} `json:"Authentihash"`
-		InternalName      string              `json:"InternalName"`
-		Copyright         string              `json:"Copyright"`
-		Imports           StringOrStringArray `json:"Imports"`
-		ExportedFunctions StringOrStringArray `json:"ExportedFunctions"`
-		PDBPath           string              `json:"PDBPath"`
-	} `json:"KnownVulnerableSamples"`
+		Filename string `json:"Filename"`
+		MD5      string `json:"MD5,omitempty"`
+		SHA1     string `json:"SHA1,omitempty"`
+		SHA256   string `json:"SHA256,omitempty"`
+	} `json:"KnownVulnerableSamples,omitempty"`
+	Tags []string `json:"Tags"`
 }
 
 // 'Command' struct for a driver from loldrivers.io
