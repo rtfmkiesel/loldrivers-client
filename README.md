@@ -17,6 +17,8 @@ Options:
     -v Print verbose messages (default: false)
     -h Shows this text
 ```
+**Warning:** This project is not affiliated with the [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) repository. JSON structure changes in the LOLDrivers API may break this client. Since this clients gets compiled with a working data set, it will fall back to the internal data set, if the parsing of the online data or the local file was not successful.
+
 ## Installation
 ### Binaries
 Download the prebuilt binaries [here](https://github.com/rtfmkiesel/loldrivers-client/releases).
@@ -25,7 +27,6 @@ Download the prebuilt binaries [here](https://github.com/rtfmkiesel/loldrivers-c
 ```bash
 git clone https://github.com/rtfmkiesel/loldrivers-client
 cd loldrivers-client
-wget -q "https://www.loldrivers.io/api/drivers.json" -O pkg/loldrivers/drivers.json
 go mod tidy
 go build -o LOLDrivers-client.exe -ldflags="-s -w" cli/loldrivers-client/loldrivers-client.go
 ```
