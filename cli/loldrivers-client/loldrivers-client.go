@@ -41,9 +41,12 @@ Modes:
   internal  Use the built-in driver set (can be outdated, fallback)
 
 Options:
-  -d        Directory to scan for drivers (default: Windows Default)
+  -d        Directory to scan for drivers (default: Windows Default Driver Folders)
+            Files which cannot be opened or read will be silently ignored
   -l        Size limit for files to scan in MB (default: 10)
-  -f        File path to 'drivers.json' for mode 'local'
+            Be aware, higher values greatly increase runtime & CPU usage
+  -f        File path to 'drivers.json'
+            Only needed with '-m local'
   -t        Number of threads to spawn (default: 20)
   -v        Print verbose messages (default: false)
   -h        Shows this text
