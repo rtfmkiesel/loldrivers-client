@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"loldrivers-client/pkg/logger"
 )
@@ -62,51 +61,6 @@ func FilesInFolder(path string) (files []string, err error) {
 		if !info.IsDir() {
 			// Append to slice
 			files = append(files, path)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return files, err
-	}
-
-	logger.Verbose(fmt.Sprintf("[+] Found %d files in %s", len(files), path))
-	return files, nil
-}
-
-// FilesInFolderExt() will return a []string of files in a folder (recursively)
-//
-// A file extension may be specified for filtering, ex: '.txt'.
-// If not needed, set 'ext' to an empty string.
-func FilesInFolderExt(path string, ext string) (files []string, err error) {
-	logger.Verbose(fmt.Sprintf("[*] Searching for files in %s", path))
-
-	useFilter := false
-	if ext != "" {
-		// normalize since Windows file extensions are not case sensitive
-		ext = strings.ToLower(ext)
-		useFilter = true
-	}
-
-	// Walk over every file in a given folder
-	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if useFilter {
-			// Only append if it's not a directory and if it has the file extension specified
-			if !info.IsDir() && strings.ToLower(filepath.Ext(path)) == ext {
-				// Append to slice
-				files = append(files, path)
-			}
-		} else {
-			// Only append if it's not a directory
-			if !info.IsDir() {
-				// Append to slice
-				files = append(files, path)
-			}
 		}
 
 		return nil
