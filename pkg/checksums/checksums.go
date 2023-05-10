@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"sync"
 
 	"loldrivers-client/pkg/filesystem"
@@ -60,6 +61,18 @@ func MD5(filepath string) (string, error) {
 	// Open the file
 	file, err := os.Open(filepath)
 	if err != nil {
+		errormsg := fmt.Sprintf("%s", err)
+		// Ignore open errors "cannot access the file", "file cannot be accessed", "Access denied"
+		if strings.Contains(strings.ToLower(errormsg), "access") {
+			return "", nil
+		}
+
+		// Ignore "file does not exist" error because files could have been removed in the meantime
+		// os.IsExist does not work
+		if strings.Contains(strings.ToLower(errormsg), "does not exist") {
+			return "", nil
+		}
+
 		return "", err
 	}
 	defer file.Close()
@@ -69,6 +82,12 @@ func MD5(filepath string) (string, error) {
 
 	// Copy the file data into the hash
 	if _, err := io.Copy(hash, file); err != nil {
+		errormsg := fmt.Sprintf("%s", err)
+		// Ignore read error "another process has locked a portion of the file"
+		if strings.Contains(strings.ToLower(errormsg), "has locked") {
+			return "", nil
+		}
+
 		return "", err
 	}
 
@@ -89,6 +108,18 @@ func SHA1(filepath string) (string, error) {
 	// Open the file
 	file, err := os.Open(filepath)
 	if err != nil {
+		errormsg := fmt.Sprintf("%s", err)
+		// Ignore open errors "cannot access the file", "file cannot be accessed", "Access denied"
+		if strings.Contains(strings.ToLower(errormsg), "access") {
+			return "", nil
+		}
+
+		// Ignore "file does not exist" error because files could have been removed in the meantime
+		// os.IsExist does not work
+		if strings.Contains(strings.ToLower(errormsg), "does not exist") {
+			return "", nil
+		}
+
 		return "", err
 	}
 	defer file.Close()
@@ -98,6 +129,12 @@ func SHA1(filepath string) (string, error) {
 
 	// Copy the file data into the hash
 	if _, err := io.Copy(hash, file); err != nil {
+		errormsg := fmt.Sprintf("%s", err)
+		// Ignore read error "another process has locked a portion of the file"
+		if strings.Contains(strings.ToLower(errormsg), "has locked") {
+			return "", nil
+		}
+
 		return "", err
 	}
 
@@ -118,6 +155,18 @@ func SHA256(filepath string) (string, error) {
 	// Open the file
 	file, err := os.Open(filepath)
 	if err != nil {
+		errormsg := fmt.Sprintf("%s", err)
+		// Ignore open errors "cannot access the file", "file cannot be accessed", "Access denied"
+		if strings.Contains(strings.ToLower(errormsg), "access") {
+			return "", nil
+		}
+
+		// Ignore "file does not exist" error because files could have been removed in the meantime
+		// os.IsExist does not work
+		if strings.Contains(strings.ToLower(errormsg), "does not exist") {
+			return "", nil
+		}
+
 		return "", err
 	}
 	defer file.Close()
@@ -127,6 +176,12 @@ func SHA256(filepath string) (string, error) {
 
 	// Copy the file data into the hash
 	if _, err := io.Copy(hash, file); err != nil {
+		errormsg := fmt.Sprintf("%s", err)
+		// Ignore read error "another process has locked a portion of the file"
+		if strings.Contains(strings.ToLower(errormsg), "has locked") {
+			return "", nil
+		}
+
 		return "", err
 	}
 
