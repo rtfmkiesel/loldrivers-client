@@ -21,11 +21,13 @@ func main() {
 	// Setup & parse command line arguments
 	var flagMode string
 	var flagDir string
+	var flagFileLimit int64
 	var flagLocalFile string
 	var flagThreads int
 	var flagVerbose bool
 	flag.StringVar(&flagMode, "m", "online", "")
 	flag.StringVar(&flagDir, "d", "", "")
+	flag.Int64Var(&flagFileLimit, "l", 10, "")
 	flag.StringVar(&flagLocalFile, "f", "", "")
 	flag.IntVar(&flagThreads, "t", 20, "")
 	flag.BoolVar(&flagVerbose, "v", false, "")
@@ -34,16 +36,17 @@ func main() {
 LOLDrivers-client.exe -m [MODE] [OPTIONS]
 
 Modes:
-    online    Download the newest driver set (default)
-    local     Use a local drivers.json file (requires '-f')
-    internal  Use the built-in driver set (can be outdated)
+  online    Download the newest driver set (default)
+  local     Use a local drivers.json file (requires '-f')
+  internal  Use the built-in driver set (can be outdated, fallback)
 
 Options:
-    -d Directory to scan for drivers (default: Windows Default)
-    -f File path to 'drivers.json' for mode 'local'
-    -t Number of threads to spawn (default: 20)
-    -v Print verbose messages (default: false)
-    -h Shows this text
+  -d        Directory to scan for drivers (default: Windows Default)
+  -l        Size limit for files to scan in MB (default: 10)
+  -f        File path to 'drivers.json' for mode 'local'
+  -t        Number of threads to spawn (default: 20)
+  -v        Print verbose messages (default: false)
+  -h        Shows this text
 	`)
 	}
 	flag.Parse()
@@ -181,7 +184,7 @@ Options:
 
 		for _, path := range filesystem.DriverPaths {
 			// Get all files
-			files, err := filesystem.FilesInFolder(path)
+			files, err := filesystem.FilesInFolder(path, flagFileLimit)
 			if err != nil {
 				logger.CatchCrit(err)
 			}
@@ -194,7 +197,7 @@ Options:
 	} else {
 		// Scan the user specified folder for drivers
 		// Get all files
-		files, err := filesystem.FilesInFolder(flagDir)
+		files, err := filesystem.FilesInFolder(flagDir, flagFileLimit)
 		if err != nil {
 			logger.CatchCrit(err)
 		}

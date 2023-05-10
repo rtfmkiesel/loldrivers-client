@@ -47,22 +47,45 @@ func FileRead(filepath string) (contentBytes []byte, err error) {
 	return contentBytes, nil
 }
 
-// FilesInFolder() will return a []string of files in a folder (recursively)
-func FilesInFolder(path string) (files []string, err error) {
+// FilesInFolder() will return a []string of filepaths from a given folder (recursively)
+//
+// sizeLimit in MB (ex: 5)
+func FilesInFolder(path string, sizeLimit int64) (files []string, err error) {
 	logger.Verbose(fmt.Sprintf("[*] Searching for files in %s", path))
 
 	// Walk over every file in a given folder
 	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			// Ignore a file if we get "Access is denied" error
+			if os.IsPermission(err) {
+				return nil
+			}
+
+			// Ignore a file if we get "The system cannot find the file specified" error
+			if os.IsNotExist(err) {
+				return nil
+			}
+
 			return err
 		}
 
-		// Only append if it's not a directory
-		if !info.IsDir() {
-			// Append to slice
-			files = append(files, path)
+		// Skip directories and non regular files
+		if info.IsDir() || !info.Mode().IsRegular() {
+			return nil
 		}
 
+		// Skip files that can't be read
+		if info.Mode().Perm()&0400 == 0 {
+			return nil
+		}
+
+		// Skip files larger than the specified size limit
+		if info.Size() > sizeLimit*1024*1024 {
+			return nil
+		}
+
+		// Append to slice
+		files = append(files, path)
 		return nil
 	})
 

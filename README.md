@@ -6,16 +6,17 @@ A client for [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) (Living O
 LOLDrivers-client.exe -m [MODE] [OPTIONS]
 
 Modes:
-    online    Download the newest driver set (default)
-    local     Use a local drivers.json file (requires '-f')
-    internal  Use the built-in driver set (can be outdated)
+  online    Download the newest driver set (default)
+  local     Use a local drivers.json file (requires '-f')
+  internal  Use the built-in driver set (can be outdated, fallback)
 
 Options:
-    -d Directory to scan for drivers (default: Windows Default)
-    -f File path to 'drivers.json' for mode 'local'
-    -t Number of threads to spawn (default: 20)
-    -v Print verbose messages (default: false)
-    -h Shows this text
+  -d        Directory to scan for drivers (default: Windows Default)
+  -l        Size limit for files to scan in MB (default: 10)
+  -f        File path to 'drivers.json' for mode 'local'
+  -t        Number of threads to spawn (default: 20)
+  -v        Print verbose messages (default: false)
+  -h        Shows this text
 ```
 **Warning:** This project is not affiliated with the [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) repository. JSON structure changes in the LOLDrivers API may break this client. Since this clients gets compiled with a working data set, it will fall back to the internal data set, if the parsing of the online data or the local file was not successful.
 
