@@ -76,7 +76,7 @@ func OutputRunner(wg *sync.WaitGroup, chanJobs <-chan Result) {
 	}
 
 	if counter == 0 {
-		Log("[-] No vulnerable/malicious drivers found!")
+		Log("[-] No vulnerable/malicious driver(s) found!")
 	} else {
 		Log(fmt.Sprintf("[*] Found %d vulnerable/malicious driver(s)!", counter))
 	}
