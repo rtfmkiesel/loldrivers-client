@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"loldrivers-client/pkg/filesystem"
 	"loldrivers-client/pkg/logger"
 	"net/http"
 )
@@ -13,7 +14,7 @@ import (
 var (
 	// Embed a driver.json during build for use with -m 'internal'
 	//go:embed drivers.json
-	InternalDrivers []byte
+	internalDrivers []byte
 )
 
 const (
@@ -35,8 +36,8 @@ type Driver struct {
 	Commands        UnmarshalCommands `json:"Commands,omitempty"`
 	Resources       []string          `json:"Resources,omitempty"`
 	Acknowledgement struct {
-		Person StringOrStringArray `json:"Person"`
-		Handle string              `json:"Handle"`
+		Person UnmarshalStringOrStringArray `json:"Person"`
+		Handle string                       `json:"Handle"`
 	} `json:"Acknowledgement,omitempty"`
 	Detection []struct {
 		Type  string `json:"type"`
@@ -63,25 +64,25 @@ type Command struct {
 	OperatingSystem string `json:"OperatingSystem"`
 }
 
-// Struct that is used during unmarshalling of the JSON data
-// since sometimes "Commands" will be either a single string or a "Command" struct
-type UnmarshalCommands struct {
-	Value []Command
-	Set   bool
-}
-
-// Struct that is used during unmarshalling of the JSON data
-// since sometimes a key can be either a single string or an array of strings
-type StringOrStringArray struct {
-	Value []string
-	Set   bool
-}
-
 // Struct to store the driver hashes from loldrivers.io
 type DriverHashes struct {
 	MD5Sums    []string
 	SHA1Sums   []string
 	SHA256Sums []string
+}
+
+// Struct that is used during unmarshalling of the "Commands" JSON data
+// since sometimes it'll be either a single string or a "Command" struct
+type UnmarshalCommands struct {
+	Value []Command
+	Set   bool
+}
+
+// Struct that is used during unmarshalling of various the JSON data
+// since sometimes a key can be either a single string or an array of strings
+type UnmarshalStringOrStringArray struct {
+	Value []string
+	Set   bool
 }
 
 // The UnmarshalJSON method on UnmarshalCommands will parse the JSON
@@ -112,7 +113,7 @@ func (s *UnmarshalCommands) UnmarshalJSON(b []byte) error {
 
 // The UnmarshalJSON method will parse the JSON as either a single string
 // or an array of strings into a slice of strings
-func (s *StringOrStringArray) UnmarshalJSON(b []byte) error {
+func (s *UnmarshalStringOrStringArray) UnmarshalJSON(b []byte) error {
 	var strVal string
 	var arrVal []string
 	// Try to unmarshal into a single string first
@@ -134,8 +135,96 @@ func (s *StringOrStringArray) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Get() will download the current loldrivers.io driver data set
-func Get() (drivers []Driver, err error) {
+// LoadDrivers() will load the drivers based on the selected mode
+// and return a slice of loldrivers.Driver
+//
+// mode = online, local, internal
+//
+// filepath = path to JSON file if mode == local, else ""
+func LoadDrivers(mode string, filepath string) (drivers []Driver, err error) {
+	// Load the drivers based on the selected mode
+	logger.Verbose(fmt.Sprintf("[*] Mode '%s'", mode))
+
+	switch mode {
+	case "online":
+		// Default, download from the web
+		// Download drivers
+		drivers, err = download()
+		if err != nil {
+			// There was a parsing error
+			logger.Catch(err)
+			logger.Log("[!] Got an error while parsing online data. Falling back to internal data set")
+			drivers, err = parse(internalDrivers)
+			if err != nil {
+				return drivers, err
+			}
+		}
+
+	case "local":
+		// User wants to use a local file
+		if filepath == "" {
+			logger.CatchCrit(fmt.Errorf("mode 'local' requires '-f'"))
+		}
+
+		// Read file
+		jsonBytes, err := filesystem.FileRead(filepath)
+		if err != nil {
+			return drivers, err
+		}
+
+		// Parse file
+		drivers, err = parse(jsonBytes)
+		if err != nil {
+			// There was a parsing error
+			logger.Catch(err)
+			logger.Log("[!] Got an error while parsing local file. Falling back to internal data set")
+			drivers, err = parse(internalDrivers)
+			if err != nil {
+				return drivers, err
+			}
+		}
+
+	case "internal":
+		// User wants to use internal data set
+		// Parse bytes
+		drivers, err = parse(internalDrivers)
+		if err != nil {
+			return drivers, err
+		}
+
+	default:
+		logger.CatchCrit(fmt.Errorf("invalid mode '%s'", mode))
+	}
+
+	return drivers, nil
+}
+
+// GetHashes() will return loldrivers.DriverHashes containing all
+// MD5, SHA1 and SHA256 from a slice of loldrivers.Driver. Empty values or '-' will be ignored
+func GetHashes(drivers []Driver) (driverHashes DriverHashes) {
+	// Get all checksums from the loaded drivers
+	for _, driver := range drivers {
+		for _, knownVulnSample := range driver.KnownVulnerableSamples {
+			// Append MD5 if exist
+			if knownVulnSample.MD5 != "" && knownVulnSample.MD5 != "-" {
+				driverHashes.MD5Sums = append(driverHashes.MD5Sums, knownVulnSample.MD5)
+			}
+			// Append SHA1 if exist
+			if knownVulnSample.SHA1 != "" && knownVulnSample.SHA1 != "-" {
+				driverHashes.SHA1Sums = append(driverHashes.SHA1Sums, knownVulnSample.SHA1)
+			}
+			// Append SHA256 if exist
+			if knownVulnSample.SHA256 != "" && knownVulnSample.SHA256 != "-" {
+				driverHashes.SHA256Sums = append(driverHashes.SHA256Sums, knownVulnSample.SHA256)
+			}
+		}
+	}
+
+	return driverHashes
+}
+
+// download() will download the current loldrivers.io data set
+func download() (drivers []Driver, err error) {
 	logger.Verbose(fmt.Sprintf("[*] Downloading the newest drivers from %s", apiURL))
 
 	// Setup HTTP client
@@ -162,7 +251,7 @@ func Get() (drivers []Driver, err error) {
 	}
 
 	// Parse the data
-	drivers, err = Parse(jsonBytes)
+	drivers, err = parse(jsonBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +259,8 @@ func Get() (drivers []Driver, err error) {
 	return drivers, nil
 }
 
-// Parse() will return a slice of drivers from JSON input bytes
-func Parse(jsonBytes []byte) (drivers []Driver, err error) {
+// parse() will return a slice of loldrivers.Drivers from JSON input bytes
+func parse(jsonBytes []byte) (drivers []Driver, err error) {
 	logger.Verbose("[*] Parsing JSON data into struct")
 
 	// Unmarshal JSON data
