@@ -17,42 +17,8 @@ import (
 	"loldrivers-client/pkg/loldrivers"
 )
 
-// Struct for the return values of Calc()
-type Sums struct {
-	Filename string
-	MD5      string
-	SHA1     string
-	SHA256   string
-}
-
-// Calc() will return the MD5, SHA1 and SHA256 checksum of a given file as a Sums struct
-func Calc(filepath string) (sums Sums, err error) {
-	// Calculate the MD5
-	sums.MD5, err = MD5(filepath)
-	if err != nil {
-		return sums, err
-	}
-
-	// Calculate the SHA1
-	sums.SHA1, err = SHA1(filepath)
-	if err != nil {
-		return sums, err
-	}
-
-	// Calculate the SHA256
-	sums.SHA256, err = SHA256(filepath)
-	if err != nil {
-		return sums, err
-	}
-
-	// Set the filename
-	sums.Filename = filepath
-
-	return sums, nil
-}
-
-// MD5() will return the MD5 checksum of the given file
-func MD5(filepath string) (string, error) {
+// calcMD5() will return the MD5 checksum of the given file
+func calcMD5(filepath string) (string, error) {
 	// Check if the file exists
 	if !filesystem.FileExists(filepath) {
 		return "", fmt.Errorf("file '%s' does not exist", filepath)
@@ -60,20 +26,10 @@ func MD5(filepath string) (string, error) {
 
 	// Open the file
 	file, err := os.Open(filepath)
-	if err != nil {
-		errormsg := fmt.Sprintf("%s", err)
-		// Ignore open errors "cannot access the file", "file cannot be accessed", "Access denied"
-		if strings.Contains(strings.ToLower(errormsg), "access") {
-			return "", nil
-		}
-
-		// Ignore "file does not exist" error because files could have been removed in the meantime
-		// os.IsExist does not work
-		if strings.Contains(strings.ToLower(errormsg), "does not exist") {
-			return "", nil
-		}
-
-		return "", err
+	// Check if the file can be accessed
+	if fileAccessErr(err) {
+		// No, skip file
+		return "", nil
 	}
 	defer file.Close()
 
@@ -98,8 +54,8 @@ func MD5(filepath string) (string, error) {
 	return hex.EncodeToString(checksum), nil
 }
 
-// SHA1 will return the SHA1 checksum of the given file
-func SHA1(filepath string) (string, error) {
+// calcSHA1 will return the SHA1 checksum of the given file
+func calcSHA1(filepath string) (string, error) {
 	// Check if the file exists
 	if !filesystem.FileExists(filepath) {
 		return "", fmt.Errorf("file '%s' does not exist", filepath)
@@ -107,20 +63,10 @@ func SHA1(filepath string) (string, error) {
 
 	// Open the file
 	file, err := os.Open(filepath)
-	if err != nil {
-		errormsg := fmt.Sprintf("%s", err)
-		// Ignore open errors "cannot access the file", "file cannot be accessed", "Access denied"
-		if strings.Contains(strings.ToLower(errormsg), "access") {
-			return "", nil
-		}
-
-		// Ignore "file does not exist" error because files could have been removed in the meantime
-		// os.IsExist does not work
-		if strings.Contains(strings.ToLower(errormsg), "does not exist") {
-			return "", nil
-		}
-
-		return "", err
+	// Check if the file can be accessed
+	if fileAccessErr(err) {
+		// No, skip file
+		return "", nil
 	}
 	defer file.Close()
 
@@ -145,8 +91,8 @@ func SHA1(filepath string) (string, error) {
 	return hex.EncodeToString(checksum), nil
 }
 
-// SHA256 will return the SHA256 checksum of the given file
-func SHA256(filepath string) (string, error) {
+// calcSHA256 will return the SHA256 checksum of the given file
+func calcSHA256(filepath string) (string, error) {
 	// Check if the file exists
 	if !filesystem.FileExists(filepath) {
 		return "", fmt.Errorf("file '%s' does not exist", filepath)
@@ -154,20 +100,10 @@ func SHA256(filepath string) (string, error) {
 
 	// Open the file
 	file, err := os.Open(filepath)
-	if err != nil {
-		errormsg := fmt.Sprintf("%s", err)
-		// Ignore open errors "cannot access the file", "file cannot be accessed", "Access denied"
-		if strings.Contains(strings.ToLower(errormsg), "access") {
-			return "", nil
-		}
-
-		// Ignore "file does not exist" error because files could have been removed in the meantime
-		// os.IsExist does not work
-		if strings.Contains(strings.ToLower(errormsg), "does not exist") {
-			return "", nil
-		}
-
-		return "", err
+	// Check if the file can be accessed
+	if fileAccessErr(err) {
+		// No, skip file
+		return "", nil
 	}
 	defer file.Close()
 
@@ -192,60 +128,6 @@ func SHA256(filepath string) (string, error) {
 	return hex.EncodeToString(checksum), nil
 }
 
-// CalcRunner() is used as a go func for calculating file checksums from a job list of filenames
-func CalcRunner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- Sums) {
-	defer wg.Done()
-
-	// For each job
-	for job := range chanJobs {
-		// Calculate checksums
-		sums, err := Calc(job)
-		if err != nil {
-			logger.Catch(err)
-			continue
-		}
-
-		// Add to the output channel
-		chanResults <- sums
-	}
-}
-
-// CompareRunner() is used as a go func for comparing checksums
-func CompareRunner(wg *sync.WaitGroup, chanJobs <-chan Sums, chanResults chan<- logger.Result, checksums loldrivers.DriverHashes) {
-	defer wg.Done()
-
-	// For each job
-	for job := range chanJobs {
-		// Check if the MD5 in in the driver slice
-		if contains(checksums.MD5Sums, job.MD5) {
-			// Send result to the output channel
-			chanResults <- logger.Result{
-				Filename: job.Filename,
-				Checksum: job.MD5,
-			}
-			continue
-		}
-		// Check if the SHA1 in in the driver slice
-		if contains(checksums.SHA1Sums, job.SHA1) {
-			// Send result to the output channel
-			chanResults <- logger.Result{
-				Filename: job.Filename,
-				Checksum: job.SHA1,
-			}
-			continue
-		}
-		// Check if the SHA256 in in the driver slice
-		if contains(checksums.SHA256Sums, job.SHA256) {
-			// Send result to the output channel
-			chanResults <- logger.Result{
-				Filename: job.Filename,
-				Checksum: job.SHA256,
-			}
-			continue
-		}
-	}
-}
-
 // contains() will return true if a []string contains a string
 func contains(slice []string, value string) bool {
 	for _, s := range slice {
@@ -255,4 +137,84 @@ func contains(slice []string, value string) bool {
 	}
 
 	return false
+}
+
+// fileAccessErr() will handle ACL errors.
+// It will return true if a file should be skipped (can't be read/opened)
+func fileAccessErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errormsg := fmt.Sprintf("%s", err)
+	// Ignore open errors "cannot access the file", "file cannot be accessed", "Access denied"
+	if strings.Contains(strings.ToLower(errormsg), "access") {
+		return true
+	}
+
+	// Ignore "file does not exist" error because files could have been removed in the meantime
+	// os.IsExist does not work
+	if strings.Contains(strings.ToLower(errormsg), "does not exist") {
+		return true
+	}
+
+	return false
+}
+
+// Runner() is used as a go func for calculating and comparing file checksums
+// from a job channel of filenames. If a calculated checksum matches a loaded checksum
+// a result in the form of logger.Result will be sent to an output channel
+func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logger.Result, checksums loldrivers.DriverHashes) {
+	defer wg.Done()
+
+	// For each job
+	for job := range chanJobs {
+		// Calculate the MD5
+		MD5, err := calcMD5(job)
+		if err != nil {
+			logger.Catch(err)
+			continue
+		}
+		// Check if the MD5 in in the driver slice
+		if contains(checksums.MD5Sums, MD5) {
+			// Send result to the output channel
+			chanResults <- logger.Result{
+				Filename: job,
+				Checksum: MD5,
+			}
+			continue
+		}
+
+		// Calculate the SHA1
+		SHA1, err := calcSHA1(job)
+		if err != nil {
+			logger.Catch(err)
+			continue
+		}
+		// Check if the SHA1 in in the driver slice
+		if contains(checksums.SHA1Sums, SHA1) {
+			// Send result to the output channel
+			chanResults <- logger.Result{
+				Filename: job,
+				Checksum: SHA1,
+			}
+			continue
+		}
+
+		// Calculate the SHA256
+		SHA256, err := calcSHA256(job)
+		if err != nil {
+			logger.Catch(err)
+			continue
+		}
+		// Check if the SHA256 in in the driver slice
+		if contains(checksums.SHA256Sums, SHA256) {
+			// Send result to the output channel
+			chanResults <- logger.Result{
+				Filename: job,
+				Checksum: SHA256,
+			}
+			continue
+		}
+	}
 }
