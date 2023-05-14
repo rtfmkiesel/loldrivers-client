@@ -10,11 +10,6 @@ import (
 	"loldrivers-client/pkg/logger"
 )
 
-var (
-	// Default driver paths for Windows 10 and Windows 11
-	DriverPaths = []string{"C:\\Windows\\System32\\drivers", "C:\\Windows\\System32\\DriverStore\\FileRepository"}
-)
-
 // FileExists() will return true if a given file exists
 func FileExists(filepath string) bool {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
@@ -47,10 +42,11 @@ func FileRead(filepath string) (contentBytes []byte, err error) {
 	return contentBytes, nil
 }
 
-// FilesInFolder() will return a []string of filepaths from a given folder (recursively)
+// FileWalker() will recursively send files from a directory, who are smaller than the
+// specified size limit, to a string channel
 //
-// sizeLimit in MB (ex: 5)
-func FilesInFolder(path string, sizeLimit int64) (files []string, err error) {
+// sizeLimit as int64 in MB (ex: 5)
+func FileWalker(path string, sizeLimit int64, outputChannel chan<- string) (err error) {
 	logger.Verbose(fmt.Sprintf("[*] Searching for files in %s", path))
 
 	// Walk over every file in a given folder
@@ -84,21 +80,14 @@ func FilesInFolder(path string, sizeLimit int64) (files []string, err error) {
 			return nil
 		}
 
-		// Append to slice
-		files = append(files, path)
+		// Send to the channel
+		outputChannel <- path
 		return nil
 	})
 
 	if err != nil {
-		return files, err
+		return err
 	}
 
-	logger.Verbose(fmt.Sprintf("[+] Found %d files in %s", len(files), path))
-	return files, nil
-}
-
-// IsAdmin() will return true is the current binary runs under administrative privileges
-func IsAdmin() bool {
-	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
-	return err == nil
+	return nil
 }
