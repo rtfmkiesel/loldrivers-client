@@ -104,6 +104,7 @@ Options:
 		// User did not specify a path with '-d', use the default Windows paths
 		paths = append(paths, "C:\\Windows\\System32\\drivers")
 		paths = append(paths, "C:\\Windows\\System32\\DriverStore\\FileRepository")
+		paths = append(paths, "C:\\WINDOWS\\inf")
 	} else {
 		// User specified a custom folder to scan
 		paths = append(paths, flagDir)
