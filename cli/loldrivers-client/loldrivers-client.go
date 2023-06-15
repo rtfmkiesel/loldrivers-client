@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 	"sync"
 	"time"
 
@@ -62,6 +63,10 @@ Options:
 
 	// ASCII L0VE
 	logger.Banner()
+	// Only run on Windows
+	if runtime.GOOS != "windows" {
+		logger.CatchCrit(fmt.Errorf("this client was made for Windows only"))
+	}
 	logger.Log("[*] Started")
 
 	// Load the drivers
