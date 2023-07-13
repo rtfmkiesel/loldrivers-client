@@ -21,7 +21,7 @@ Options:
   -v        Print verbose messages (default: false)
   -h        Shows this text
 ```
-**Warning:** This project is not affiliated with the [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) repository. JSON structure changes in the LOLDrivers API may break this client. Since this clients gets compiled with a working data set, it will fall back to the internal data set, if the parsing of the online data or the local file was not successful.
+**Warning:** This project is not affiliated with the [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) repository. JSON structure changes in the LOLDrivers API may break this client. Since this client gets compiled with a working data set, it will fall back to the internal data set, if the parsing of the online data or the local file was not successful.
 
 ## Installation
 ### Binaries
