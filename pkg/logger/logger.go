@@ -2,6 +2,7 @@
 package logger
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
@@ -10,7 +11,9 @@ import (
 
 var (
 	// To control verbose output
-	BeVerbose bool = false
+	BeVerbose      bool = false
+	OutputJSON     bool = false
+	OutputParsable bool = false
 )
 
 const (
@@ -26,7 +29,9 @@ type Result struct {
 
 // Log() will print to the terminal
 func Log(message string) {
-	fmt.Printf("%s %s\n", time.Now().Format(timeFormat), message)
+	if !OutputParsable && !OutputJSON {
+		fmt.Printf("%s %s\n", time.Now().Format(timeFormat), message)
+	}
 }
 
 // Verbose() will print verbose messages to the terminal if verbose mode is selected
@@ -50,7 +55,8 @@ func CatchCrit(err error) {
 
 // Banner() will print the banner
 func Banner() {
-	fmt.Printf(`   __    ___  __     _      _                    
+	if !OutputParsable && !OutputJSON {
+		fmt.Printf(`   __    ___  __     _      _                    
   / /   /___\/ /  __| |_ __(_)_   _____ _ __ ___ 
  / /   //  // /  / _  | '__| \ \ / / _ \ '__/ __|
 / /___/ \_// /__| (_| | |  | |\ V /  __/ |  \__ \
@@ -58,6 +64,7 @@ func Banner() {
 https://www.loldrivers.io | Client by @rtfmkiesel
 
 `)
+	}
 }
 
 // OutputRunner() is used as a go func to display the results
@@ -70,7 +77,18 @@ func OutputRunner(wg *sync.WaitGroup, chanJobs <-chan Result) {
 	// For each job
 	for job := range chanJobs {
 		// Print result
-		Log(fmt.Sprintf("[+] %s:%s", job.Filename, job.Checksum))
+		if OutputParsable {
+			fmt.Printf("%s;%s\n", job.Filename, job.Checksum)
+		} else if OutputJSON {
+			jsonOutput, err := json.Marshal(job)
+			if err != nil {
+				Catch(err)
+				continue
+			}
+			fmt.Printf("%s\n", string(jsonOutput))
+		} else {
+			Log(fmt.Sprintf("[+] %s:%s", job.Filename, job.Checksum))
+		}
 		// Increment counter
 		counter++
 	}

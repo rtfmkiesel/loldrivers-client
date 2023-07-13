@@ -25,12 +25,16 @@ func main() {
 	var flagDir string
 	var flagFileLimit int64
 	var flagLocalFile string
+	var flagParsable bool
+	var flagJSON bool
 	var flagThreads int
 	var flagVerbose bool
 	flag.StringVar(&flagMode, "m", "online", "")
 	flag.StringVar(&flagDir, "d", "", "")
 	flag.Int64Var(&flagFileLimit, "l", 10, "")
 	flag.StringVar(&flagLocalFile, "f", "", "")
+	flag.BoolVar(&flagParsable, "p", false, "")
+	flag.BoolVar(&flagJSON, "j", false, "")
 	flag.IntVar(&flagThreads, "t", 20, "")
 	flag.BoolVar(&flagVerbose, "v", false, "")
 	flag.Usage = func() {
@@ -43,22 +47,36 @@ Modes:
   internal  Use the built-in driver set (can be outdated, fallback)
 
 Options:
-  -d        Directory to scan for drivers (default: Windows default driver folders)
+  -d        Directory to scan for drivers (default: Windows driver folders)
             Files which cannot be opened or read will be silently ignored
   -l        Size limit for files to scan in MB (default: 10)
             Be aware, higher values greatly increase runtime & CPU usage
+
   -f        File path to 'drivers.json'
             Only needed with '-m local'
+
+  -p        Formats output to be parsable as 'PATH;CHECKSUM' (default: false)
+  -j        Formats output to JSON (default: false)
+  -v        Print verbose messages (default: false, overrides '-p' and '-j')
+
   -t        Number of threads to spawn (default: 20)
-  -v        Print verbose messages (default: false)
   -h        Shows this text
 	`)
 	}
 	flag.Parse()
 
+	// Only one output style
+	if flagParsable && flagJSON {
+		logger.CatchCrit(fmt.Errorf("only use '-p' or '-j', not both"))
+	}
+
 	if flagVerbose {
 		// Set the value in the logger module
 		logger.BeVerbose = true
+	} else {
+		// Only applicable if not verbose
+		logger.OutputParsable = flagParsable
+		logger.OutputJSON = flagJSON
 	}
 
 	// ASCII L0VE
