@@ -15,6 +15,7 @@ import (
 	"loldrivers-client/pkg/filesystem"
 	"loldrivers-client/pkg/logger"
 	"loldrivers-client/pkg/loldrivers"
+	"loldrivers-client/pkg/output"
 )
 
 // calcMD5() will return the MD5 checksum of the given file
@@ -164,7 +165,7 @@ func fileAccessErr(err error) bool {
 // Runner() is used as a go func for calculating and comparing file checksums
 // from a job channel of filenames. If a calculated checksum matches a loaded checksum
 // a result in the form of logger.Result will be sent to an output channel
-func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logger.Result, checksums loldrivers.DriverHashes) {
+func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- output.Result, checksums loldrivers.DriverHashes, drivers []loldrivers.Driver) {
 	defer wg.Done()
 
 	// For each job
@@ -177,10 +178,15 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logge
 		}
 		// Check if the MD5 in in the driver slice
 		if contains(checksums.MD5Sums, MD5) {
+			// Find the matching driver
+			// Error ignored since there must be a match
+			driver, _ := loldrivers.MatchHash(MD5, drivers)
+
 			// Send result to the output channel
-			chanResults <- logger.Result{
+			chanResults <- output.Result{
 				Filepath: job,
 				Checksum: MD5,
+				Driver:   driver,
 			}
 			continue
 		}
@@ -193,10 +199,15 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logge
 		}
 		// Check if the SHA1 in in the driver slice
 		if contains(checksums.SHA1Sums, SHA1) {
+			// Find the matching driver
+			// Error ignored since there must be a match
+			driver, _ := loldrivers.MatchHash(SHA1, drivers)
+
 			// Send result to the output channel
-			chanResults <- logger.Result{
+			chanResults <- output.Result{
 				Filepath: job,
 				Checksum: SHA1,
+				Driver:   driver,
 			}
 			continue
 		}
@@ -209,10 +220,15 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logge
 		}
 		// Check if the SHA256 in in the driver slice
 		if contains(checksums.SHA256Sums, SHA256) {
+			// Find the matching driver
+			// Error ignored since there must be a match
+			driver, _ := loldrivers.MatchHash(SHA256, drivers)
+
 			// Send result to the output channel
-			chanResults <- logger.Result{
+			chanResults <- output.Result{
 				Filepath: job,
 				Checksum: SHA256,
+				Driver:   driver,
 			}
 			continue
 		}

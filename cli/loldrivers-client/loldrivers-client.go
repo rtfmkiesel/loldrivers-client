@@ -14,6 +14,7 @@ import (
 	"loldrivers-client/pkg/filesystem"
 	"loldrivers-client/pkg/logger"
 	"loldrivers-client/pkg/loldrivers"
+	"loldrivers-client/pkg/output"
 )
 
 func main() {
@@ -66,9 +67,11 @@ Options:
 	if flagSilent && flagJSON {
 		logger.CatchCrit(fmt.Errorf("only use '-s' or '-j', not both"))
 	} else if flagSilent {
-		logger.OutputMode = "silent"
+		output.Mode = "silent"
+		logger.BeSilent = true
 	} else if flagJSON {
-		logger.OutputMode = "json"
+		output.Mode = "json"
+		logger.BeSilent = true
 	}
 
 	// ASCII L0VE
@@ -87,24 +90,24 @@ Options:
 
 	// Get all hashes from the loaded drivers
 	driverHashes := loldrivers.GetHashes(drivers)
-	logger.Log(fmt.Sprintf("[+] Got %d MD5 hashes", len(driverHashes.MD5Sums)))
-	logger.Log(fmt.Sprintf("[+] Got %d SHA1 hashes", len(driverHashes.SHA1Sums)))
-	logger.Log(fmt.Sprintf("[+] Got %d SHA256 hashes", len(driverHashes.SHA256Sums)))
+	logger.Log(fmt.Sprintf("    |-- Got %d MD5 hashes", len(driverHashes.MD5Sums)))
+	logger.Log(fmt.Sprintf("    |-- Got %d SHA1 hashes", len(driverHashes.SHA1Sums)))
+	logger.Log(fmt.Sprintf("    |-- Got %d SHA256 hashes", len(driverHashes.SHA256Sums)))
 
 	// Create the channels and waitgroup for the checksum runners
 	chanFiles := make(chan string)
-	chanResults := make(chan logger.Result)
+	chanResults := make(chan output.Result)
 	wgRunner := new(sync.WaitGroup)
 	// Spawn the checksum runners
 	for i := 0; i <= flagThreads; i++ {
-		go checksums.Runner(wgRunner, chanFiles, chanResults, driverHashes)
+		go checksums.Runner(wgRunner, chanFiles, chanResults, driverHashes, drivers)
 		wgRunner.Add(1)
 	}
 
 	// Create the waitgroup for the output runner
 	wgOutput := new(sync.WaitGroup)
 	// Spawn the output runner
-	go logger.OutputRunner(wgOutput, chanResults)
+	go output.Runner(wgOutput, chanResults)
 	wgOutput.Add(1)
 
 	// Set the folders which are going to be scanned for files
