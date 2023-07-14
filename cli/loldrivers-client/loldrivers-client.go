@@ -25,21 +25,19 @@ func main() {
 	var flagDir string
 	var flagFileLimit int64
 	var flagLocalFile string
-	var flagParsable bool
+	var flagSilent bool
 	var flagJSON bool
 	var flagThreads int
-	var flagVerbose bool
 	flag.StringVar(&flagMode, "m", "online", "")
 	flag.StringVar(&flagDir, "d", "", "")
 	flag.Int64Var(&flagFileLimit, "l", 10, "")
 	flag.StringVar(&flagLocalFile, "f", "", "")
-	flag.BoolVar(&flagParsable, "p", false, "")
+	flag.BoolVar(&flagSilent, "s", false, "")
 	flag.BoolVar(&flagJSON, "j", false, "")
 	flag.IntVar(&flagThreads, "t", 20, "")
-	flag.BoolVar(&flagVerbose, "v", false, "")
 	flag.Usage = func() {
-		fmt.Println(`
-LOLDrivers-client.exe -m [MODE] [OPTIONS]
+		logger.Banner()
+		fmt.Println(`LOLDrivers-client.exe -m [MODE] [OPTIONS]
 
 Modes:
   online    Download the newest driver set (default)
@@ -55,9 +53,8 @@ Options:
   -f        File path to 'drivers.json'
             Only needed with '-m local'
 
-  -p        Formats output to be parsable as 'PATH;CHECKSUM' (default: false)
-  -j        Formats output to JSON (default: false)
-  -v        Print verbose messages (default: false, overrides '-p' and '-j')
+  -s        Silent (parsable) output (default: false)
+  -j        JSON output (default: false)
 
   -t        Number of threads to spawn (default: 20)
   -h        Shows this text
@@ -66,17 +63,12 @@ Options:
 	flag.Parse()
 
 	// Only one output style
-	if flagParsable && flagJSON {
-		logger.CatchCrit(fmt.Errorf("only use '-p' or '-j', not both"))
-	}
-
-	if flagVerbose {
-		// Set the value in the logger module
-		logger.BeVerbose = true
-	} else {
-		// Only applicable if not verbose
-		logger.OutputParsable = flagParsable
-		logger.OutputJSON = flagJSON
+	if flagSilent && flagJSON {
+		logger.CatchCrit(fmt.Errorf("only use '-s' or '-j', not both"))
+	} else if flagSilent {
+		logger.OutputMode = "silent"
+	} else if flagJSON {
+		logger.OutputMode = "json"
 	}
 
 	// ASCII L0VE
@@ -85,20 +77,19 @@ Options:
 	if runtime.GOOS != "windows" {
 		logger.CatchCrit(fmt.Errorf("this client was made for Windows only"))
 	}
-	logger.Log("[*] Started")
 
 	// Load the drivers
 	drivers, err := loldrivers.LoadDrivers(flagMode, flagLocalFile)
 	if err != nil {
 		logger.CatchCrit(err)
 	}
-	logger.Verbose(fmt.Sprintf("[*] Loaded %d drivers", len(drivers)))
+	logger.Log(fmt.Sprintf("[+] Loaded %d drivers", len(drivers)))
 
 	// Get all hashes from the loaded drivers
 	driverHashes := loldrivers.GetHashes(drivers)
-	logger.Verbose(fmt.Sprintf("[*] Got %d MD5 hashes", len(driverHashes.MD5Sums)))
-	logger.Verbose(fmt.Sprintf("[*] Got %d SHA1 hashes", len(driverHashes.SHA1Sums)))
-	logger.Verbose(fmt.Sprintf("[*] Got %d SHA256 hashes", len(driverHashes.SHA256Sums)))
+	logger.Log(fmt.Sprintf("[+] Got %d MD5 hashes", len(driverHashes.MD5Sums)))
+	logger.Log(fmt.Sprintf("[+] Got %d SHA1 hashes", len(driverHashes.SHA1Sums)))
+	logger.Log(fmt.Sprintf("[+] Got %d SHA256 hashes", len(driverHashes.SHA256Sums)))
 
 	// Create the channels and waitgroup for the checksum runners
 	chanFiles := make(chan string)
@@ -150,5 +141,5 @@ Options:
 	// Wait until all results have been processed
 	wgOutput.Wait()
 
-	logger.Verbose(fmt.Sprintf("[*] Done, took %s\n", time.Since(startTime)))
+	logger.Log(fmt.Sprintf("[+] Done, took %s\n", time.Since(startTime)))
 }

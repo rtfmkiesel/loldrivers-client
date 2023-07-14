@@ -47,7 +47,7 @@ func FileRead(filepath string) (contentBytes []byte, err error) {
 //
 // sizeLimit as int64 in MB (ex: 5)
 func FileWalker(path string, sizeLimit int64, outputChannel chan<- string) (err error) {
-	logger.Verbose(fmt.Sprintf("[*] Searching for files in %s", path))
+	logger.Log(fmt.Sprintf("[*] Searching for files in %s", path))
 
 	// Walk over every file in a given folder
 	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {

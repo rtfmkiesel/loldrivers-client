@@ -33,10 +33,10 @@ type Driver struct {
 	MitreID         string            `json:"MitreID"`
 	Category        string            `json:"Category"`
 	Verified        string            `json:"Verified"`
-	Commands        UnmarshalCommands `json:"Commands,omitempty"`
+	Commands        unmarshalCommands `json:"Commands,omitempty"`
 	Resources       []string          `json:"Resources,omitempty"`
 	Acknowledgement struct {
-		Person UnmarshalStringOrStringArray `json:"Person"`
+		Person unmarshalStringOrStringArray `json:"Person"`
 		Handle string                       `json:"Handle"`
 	} `json:"Acknowledgement,omitempty"`
 	Detection []struct {
@@ -73,21 +73,21 @@ type DriverHashes struct {
 
 // Struct that is used during unmarshalling of the "Commands" JSON data
 // since sometimes it'll be either a single string or a "Command" struct
-type UnmarshalCommands struct {
+type unmarshalCommands struct {
 	Value []Command
 	Set   bool
 }
 
 // Struct that is used during unmarshalling of various the JSON data
 // since sometimes a key can be either a single string or an array of strings
-type UnmarshalStringOrStringArray struct {
+type unmarshalStringOrStringArray struct {
 	Value []string
 	Set   bool
 }
 
 // The UnmarshalJSON method on UnmarshalCommands will parse the JSON
 // as eiter a "Command" struct or a single string (into a "Command" struct)
-func (s *UnmarshalCommands) UnmarshalJSON(b []byte) error {
+func (s *unmarshalCommands) UnmarshalJSON(b []byte) error {
 	var strVal string
 	var cmdVal Command
 	// Try to unmarshal into a string first
@@ -113,7 +113,7 @@ func (s *UnmarshalCommands) UnmarshalJSON(b []byte) error {
 
 // The UnmarshalJSON method will parse the JSON as either a single string
 // or an array of strings into a slice of strings
-func (s *UnmarshalStringOrStringArray) UnmarshalJSON(b []byte) error {
+func (s *unmarshalStringOrStringArray) UnmarshalJSON(b []byte) error {
 	var strVal string
 	var arrVal []string
 	// Try to unmarshal into a single string first
@@ -143,7 +143,7 @@ func (s *UnmarshalStringOrStringArray) UnmarshalJSON(b []byte) error {
 // filepath = path to JSON file if mode == local, else ""
 func LoadDrivers(mode string, filepath string) (drivers []Driver, err error) {
 	// Load the drivers based on the selected mode
-	logger.Verbose(fmt.Sprintf("[*] Mode '%s'", mode))
+	logger.Log(fmt.Sprintf("[*] Loading drivers with mode '%s'", mode))
 
 	switch mode {
 	case "online":
@@ -225,7 +225,7 @@ func GetHashes(drivers []Driver) (driverHashes DriverHashes) {
 
 // download() will download the current loldrivers.io data set
 func download() (drivers []Driver, err error) {
-	logger.Verbose(fmt.Sprintf("[*] Downloading the newest drivers from %s", apiURL))
+	logger.Log("[*] Downloading the newest drivers")
 
 	// Setup HTTP client
 	client := &http.Client{}
@@ -242,7 +242,7 @@ func download() (drivers []Driver, err error) {
 		return nil, err
 	}
 	defer response.Body.Close()
-	logger.Verbose("[+] Download successful")
+	logger.Log("[+] Download successful")
 
 	// Read the bode into []byte
 	jsonBytes, err := io.ReadAll(response.Body)
@@ -261,13 +261,10 @@ func download() (drivers []Driver, err error) {
 
 // parse() will return a slice of loldrivers.Drivers from JSON input bytes
 func parse(jsonBytes []byte) (drivers []Driver, err error) {
-	logger.Verbose("[*] Parsing JSON data into struct")
-
 	// Unmarshal JSON data
 	if err := json.Unmarshal(jsonBytes, &drivers); err != nil {
 		return nil, err
 	}
 
-	logger.Verbose("[+] Parsing successful")
 	return drivers, nil
 }
