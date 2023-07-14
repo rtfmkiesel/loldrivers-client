@@ -223,6 +223,26 @@ func GetHashes(drivers []Driver) (driverHashes DriverHashes) {
 	return driverHashes
 }
 
+// MatchHash() will return the matching loldrivers.Driver for a given hash or else will return an error
+func MatchHash(hash string, drivers []Driver) (match Driver, err error) {
+	// Get all checksums from the loaded drivers
+	for _, driver := range drivers {
+		for _, knownVulnSample := range driver.KnownVulnerableSamples {
+			if knownVulnSample.MD5 == hash {
+				return driver, nil
+			}
+			if knownVulnSample.SHA1 == hash {
+				return driver, nil
+			}
+			if knownVulnSample.SHA256 == hash {
+				return driver, nil
+			}
+		}
+	}
+
+	return match, fmt.Errorf("no match found")
+}
+
 // download() will download the current loldrivers.io data set
 func download() (drivers []Driver, err error) {
 	logger.Log("[*] Downloading the newest drivers")
