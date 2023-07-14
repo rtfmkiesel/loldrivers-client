@@ -11,16 +11,21 @@ Modes:
   internal  Use the built-in driver set (can be outdated, fallback)
 
 Options:
-  -d        Directory to scan for drivers (default: Windows Default Driver Folders)
+  -d        Directory to scan for drivers (default: Windows driver folders)
             Files which cannot be opened or read will be silently ignored
   -l        Size limit for files to scan in MB (default: 10)
             Be aware, higher values greatly increase runtime & CPU usage
+
   -f        File path to 'drivers.json'
             Only needed with '-m local'
+
+  -s        Silent (parsable) output (default: false)
+  -j        JSON output (default: false)
+
   -t        Number of threads to spawn (default: 20)
-  -v        Print verbose messages (default: false)
   -h        Shows this text
 ```
+
 **Warning:** This project is not affiliated with the [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) repository. JSON structure changes in the LOLDrivers API may break this client. Since this client gets compiled with a working data set, it will fall back to the internal data set, if the parsing of the online data or the local file was not successful.
 
 ## Installation
