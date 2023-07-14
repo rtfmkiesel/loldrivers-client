@@ -179,7 +179,7 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logge
 		if contains(checksums.MD5Sums, MD5) {
 			// Send result to the output channel
 			chanResults <- logger.Result{
-				Filename: job,
+				Filepath: job,
 				Checksum: MD5,
 			}
 			continue
@@ -195,7 +195,7 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logge
 		if contains(checksums.SHA1Sums, SHA1) {
 			// Send result to the output channel
 			chanResults <- logger.Result{
-				Filename: job,
+				Filepath: job,
 				Checksum: SHA1,
 			}
 			continue
@@ -211,7 +211,7 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- logge
 		if contains(checksums.SHA256Sums, SHA256) {
 			// Send result to the output channel
 			chanResults <- logger.Result{
-				Filename: job,
+				Filepath: job,
 				Checksum: SHA256,
 			}
 			continue
