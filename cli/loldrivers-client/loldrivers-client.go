@@ -5,7 +5,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -113,11 +112,6 @@ Options:
 	// Set the folders which are going to be scanned for files
 	var paths []string
 	if flagDir == "" {
-		// Since scanning the default folders requires admin privileges, check here
-		if _, err := os.Open("\\\\.\\PHYSICALDRIVE0"); err != nil {
-			logger.CatchCrit(fmt.Errorf("not running with administrative privileges"))
-		}
-
 		// User did not specify a path with '-d', use the default Windows paths
 		paths = append(paths, "C:\\Windows\\System32\\drivers")
 		paths = append(paths, "C:\\Windows\\System32\\DriverStore\\FileRepository")
