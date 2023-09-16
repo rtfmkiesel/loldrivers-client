@@ -32,12 +32,12 @@ func CatchCrit(err error) {
 func Banner() {
 	if !BeSilent {
 		fmt.Printf(`
-    ╒═══════════════════════════╕
-    |     LOLDrivers-client     |
-    |   https://loldrivers.io   |
-    |                           |
-    | by @rtfmkiesel/mkiesel.ch |
-    ╘═══════════════════════════╛
+    ┌─────────────────────────────────────┐
+    │          LOLDrivers-client          │
+    │      https://www.loldrivers.io      │
+    │                                     │
+    │    https://github.com/rtfmkiesel    │ 
+    └─────────────────────────────────────┘
 
 `)
 	}
