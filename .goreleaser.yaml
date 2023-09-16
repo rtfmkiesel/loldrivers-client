@@ -25,4 +25,5 @@ archives:
       LOLDrivers-client_Windows_{{ .Arch }}
     files:
       - "README.md"
+      - "LICENSE"
     rlcp: true
