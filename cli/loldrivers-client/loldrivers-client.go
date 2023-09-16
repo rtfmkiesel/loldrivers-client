@@ -27,37 +27,44 @@ func main() {
 	var flagLocalFile string
 	var flagSilent bool
 	var flagJSON bool
-	var flagThreads int
+	var flagWorkers int
 	flag.StringVar(&flagMode, "m", "online", "")
+	flag.StringVar(&flagMode, "mode", "online", "")
 	flag.StringVar(&flagDir, "d", "", "")
+	flag.StringVar(&flagDir, "scan-dir", "", "")
 	flag.Int64Var(&flagFileLimit, "l", 10, "")
+	flag.Int64Var(&flagFileLimit, "scan-limit", 10, "")
 	flag.StringVar(&flagLocalFile, "f", "", "")
+	flag.StringVar(&flagLocalFile, "driver-file", "", "")
 	flag.BoolVar(&flagSilent, "s", false, "")
+	flag.BoolVar(&flagSilent, "silent", false, "")
 	flag.BoolVar(&flagJSON, "j", false, "")
-	flag.IntVar(&flagThreads, "t", 20, "")
+	flag.BoolVar(&flagJSON, "json", false, "")
+	flag.IntVar(&flagWorkers, "w", 20, "")
+	flag.IntVar(&flagWorkers, "workers", 20, "")
 	flag.Usage = func() {
 		logger.Banner()
-		fmt.Println(`LOLDrivers-client.exe -m [MODE] [OPTIONS]
-
-Modes:
-  online    Download the newest driver set (default)
-  local     Use a local drivers.json file (requires '-f')
-  internal  Use the built-in driver set (can be outdated, fallback)
+		fmt.Println(`Usage:
+  LOLDrivers-client.exe [OPTIONS]
 
 Options:
-  -d        Directory to scan for drivers (default: Windows driver folders)
-            Files which cannot be opened or read will be silently ignored
-  -l        Size limit for files to scan in MB (default: 10)
-            Be aware, higher values greatly increase runtime & CPU usage
+  -m, --mode            Operating Mode {online, local, internal}
+                            online = Download the newest driver set (default)
+                            local = Use a local drivers.json file (requires '-f')
+                            internal = Use the built-in driver set (can be outdated)
 
-  -f        File path to 'drivers.json'
-            Only needed with '-m local'
+  -d, --scan-dir        Directory to scan for drivers (default: Windows driver folders)
+                        Files which cannot be opened or read will be silently ignored
+  -l, --scan-limit      Size limit for files to scan in MB (default: 10)
+                        Be aware, higher values greatly increase runtime & CPU usage
 
-  -s        Silent (parsable) output (default: false)
-  -j        JSON output (default: false)
+  -f, --driver-file     File path to 'drivers.json', when running with '-m local'
 
-  -t        Number of threads to spawn (default: 20)
-  -h        Shows this text
+  -s, --silent          Will only output found files for easy parsing (default: false)
+  -j, --json            Format output as JSON (default: false)
+
+  -w, --workers         Number of "threads" to spawn (default: 20)
+  -h, --help            Shows this text
 	`)
 	}
 	flag.Parse()
@@ -98,7 +105,7 @@ Options:
 	chanResults := make(chan output.Result)
 	wgRunner := new(sync.WaitGroup)
 	// Spawn the checksum runners
-	for i := 0; i <= flagThreads; i++ {
+	for i := 0; i <= flagWorkers; i++ {
 		go checksums.Runner(wgRunner, chanFiles, chanResults, driverHashes, drivers)
 		wgRunner.Add(1)
 	}
