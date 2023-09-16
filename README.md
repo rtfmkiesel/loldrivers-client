@@ -1,32 +1,35 @@
 # LOLDrivers-client
-A client for [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) (Living Off The Land Drivers). Scan your computer for known vulnerable and known malicious Windows drivers.
+![GitHub Repo stars](https://img.shields.io/github/stars/rtfmkiesel/loldrivers-client) ![GitHub](https://img.shields.io/github/license/rtfmkiesel/loldrivers-client)
+
+The first *blazingly fast* client for [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) (Living Off The Land Drivers) by [MagicSword](https://www.magicsword.io/). Scan your computer for known vulnerable and known malicious Windows drivers.
+
+
+![](demo.gif)
+
 
 ## Usage
 ```
-LOLDrivers-client.exe -m [MODE] [OPTIONS]
-
-Modes:
-  online    Download the newest driver set (default)
-  local     Use a local drivers.json file (requires '-f')
-  internal  Use the built-in driver set (can be outdated, fallback)
+LOLDrivers-client.exe [OPTIONS]
 
 Options:
-  -d        Directory to scan for drivers (default: Windows driver folders)
-            Files which cannot be opened or read will be silently ignored
-  -l        Size limit for files to scan in MB (default: 10)
-            Be aware, higher values greatly increase runtime & CPU usage
+  -m, --mode            Operating Mode {online, local, internal}
+                            online = Download the newest driver set (default)
+                            local = Use a local drivers.json file (requires '-f')
+                            internal = Use the built-in driver set (can be outdated)
 
-  -f        File path to 'drivers.json'
-            Only needed with '-m local'
+  -d, --scan-dir        Directory to scan for drivers (default: Windows driver folders)
+                        Files which cannot be opened or read will be silently ignored
+  -l, --scan-limit      Size limit for files to scan in MB (default: 10)
+                        Be aware, higher values greatly increase runtime & CPU usage
 
-  -s        Silent (parsable) output (default: false)
-  -j        JSON output (default: false)
+  -f, --driver-file     File path to 'drivers.json', when running with '-m local'
 
-  -t        Number of threads to spawn (default: 20)
-  -h        Shows this text
+  -s, --silent          Will only output found files for easy parsing (default: false)
+  -j, --json            Format output as JSON (default: false)
+
+  -w, --workers         Number of "threads" to spawn (default: 20)
+  -h, --help            Shows this text
 ```
-
-**Warning:** This project is not affiliated with the [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) repository. JSON structure changes in the LOLDrivers API may break this client. Since this client gets compiled with a working data set, it will fall back to the internal data set, if the parsing of the online data or the local file was not successful.
 
 ## Installation
 ### Binaries
@@ -42,3 +45,6 @@ go build -o LOLDrivers-client.exe -ldflags="-s -w" cli/loldrivers-client/loldriv
 
 # Contributing 
 Improvements in the form of PRs are always welcome, especially as this was made during my first year of using Golang. 
+
+# Legal
+This project is not affiliated with the [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) repository.
