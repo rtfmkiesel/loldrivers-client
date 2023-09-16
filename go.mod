@@ -1,3 +1,3 @@
 module github.com/rtfmkiesel/loldrivers-client
 
-go 1.20
+go 1.21
