@@ -41,7 +41,7 @@ func Runner(wg *sync.WaitGroup, chanResults <-chan Result) {
 			fmt.Printf("%s\n", string(jsonOutput))
 		default:
 			fmt.Printf("[!] MATCH: %s\n", result.Filepath)
-			fmt.Printf("    |-- Category: %s\n", result.Driver.Category)
+			//fmt.Printf("    |-- Category: %s\n", result.Driver.Category)
 			fmt.Printf("    |-- Checksum: %s\n", result.Checksum)
 			fmt.Printf("    |-- Link: https://loldrivers.io/drivers/%s\n", result.Driver.ID)
 		}
