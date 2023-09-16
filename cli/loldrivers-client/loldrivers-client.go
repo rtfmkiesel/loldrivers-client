@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"loldrivers-client/pkg/checksums"
-	"loldrivers-client/pkg/filesystem"
-	"loldrivers-client/pkg/logger"
-	"loldrivers-client/pkg/loldrivers"
-	"loldrivers-client/pkg/output"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/checksums"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/filesystem"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/loldrivers"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/output"
 )
 
 func main() {

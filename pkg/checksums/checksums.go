@@ -12,10 +12,10 @@ import (
 	"strings"
 	"sync"
 
-	"loldrivers-client/pkg/filesystem"
-	"loldrivers-client/pkg/logger"
-	"loldrivers-client/pkg/loldrivers"
-	"loldrivers-client/pkg/output"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/filesystem"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/loldrivers"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/output"
 )
 
 // calcMD5() will return the MD5 checksum of the given file

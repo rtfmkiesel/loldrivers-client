@@ -4,9 +4,10 @@ package output
 import (
 	"encoding/json"
 	"fmt"
-	"loldrivers-client/pkg/logger"
-	"loldrivers-client/pkg/loldrivers"
 	"sync"
+
+	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/loldrivers"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"loldrivers-client/pkg/logger"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 )
 
 // FileExists() will return true if a given file exists

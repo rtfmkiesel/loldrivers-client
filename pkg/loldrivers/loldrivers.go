@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"loldrivers-client/pkg/filesystem"
-	"loldrivers-client/pkg/logger"
 	"net/http"
+
+	"github.com/rtfmkiesel/loldrivers-client/pkg/filesystem"
+	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 )
 
 var (
