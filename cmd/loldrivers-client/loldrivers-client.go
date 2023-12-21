@@ -71,7 +71,7 @@ Options:
 
 	// Only one output style
 	if flagSilent && flagJSON {
-		logger.CatchCrit(fmt.Errorf("only use '-s' or '-j', not both"))
+		logger.Fatalf("only use '-s' or '-j', not both")
 	} else if flagSilent {
 		output.Mode = "silent"
 		logger.BeSilent = true
@@ -84,13 +84,13 @@ Options:
 	logger.Banner()
 	// Only run on Windows
 	if runtime.GOOS != "windows" {
-		logger.CatchCrit(fmt.Errorf("this client was made for Windows only"))
+		logger.Fatalf("this client was made for Windows only")
 	}
 
 	// Load the drivers
 	drivers, err := loldrivers.LoadDrivers(flagMode, flagLocalFile)
 	if err != nil {
-		logger.CatchCrit(err)
+		logger.Fatal(err)
 	}
 	logger.Log(fmt.Sprintf("[+] Loaded %d drivers", len(drivers)))
 
@@ -131,7 +131,7 @@ Options:
 	// Get all files from subfolders and send them to the checksum runners via a channel
 	for _, path := range paths {
 		if err := filesystem.FileWalker(path, flagFileLimit, chanFiles); err != nil {
-			logger.CatchCrit(err)
+			logger.Fatal(err)
 		}
 	}
 

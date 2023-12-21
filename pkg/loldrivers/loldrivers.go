@@ -153,7 +153,7 @@ func LoadDrivers(mode string, filepath string) (drivers []Driver, err error) {
 		drivers, err = download()
 		if err != nil {
 			// There was a parsing error
-			logger.Catch(err)
+			logger.Error(err)
 			logger.Log("[!] Got an error while parsing online data. Falling back to internal data set")
 			drivers, err = parse(internalDrivers)
 			if err != nil {
@@ -164,7 +164,7 @@ func LoadDrivers(mode string, filepath string) (drivers []Driver, err error) {
 	case "local":
 		// User wants to use a local file
 		if filepath == "" {
-			logger.CatchCrit(fmt.Errorf("mode 'local' requires '-f'"))
+			logger.Fatalf("mode 'local' requires '-f'")
 		}
 
 		// Read file
@@ -177,7 +177,7 @@ func LoadDrivers(mode string, filepath string) (drivers []Driver, err error) {
 		drivers, err = parse(jsonBytes)
 		if err != nil {
 			// There was a parsing error
-			logger.Catch(err)
+			logger.Error(err)
 			logger.Log("[!] Got an error while parsing local file. Falling back to internal data set")
 			drivers, err = parse(internalDrivers)
 			if err != nil {
@@ -194,7 +194,7 @@ func LoadDrivers(mode string, filepath string) (drivers []Driver, err error) {
 		}
 
 	default:
-		logger.CatchCrit(fmt.Errorf("invalid mode '%s'", mode))
+		logger.Fatalf("invalid mode '%s'", mode)
 	}
 
 	return drivers, nil

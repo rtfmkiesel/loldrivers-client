@@ -37,7 +37,7 @@ func Runner(wg *sync.WaitGroup, chanResults <-chan Result) {
 		case "json":
 			jsonOutput, err := json.Marshal(result)
 			if err != nil {
-				logger.CatchCrit(err)
+				logger.Fatal(err)
 			}
 			fmt.Printf("%s\n", string(jsonOutput))
 		default:

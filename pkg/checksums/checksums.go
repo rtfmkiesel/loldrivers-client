@@ -173,7 +173,7 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- outpu
 		// Calculate the MD5
 		MD5, err := calcMD5(job)
 		if err != nil {
-			logger.Catch(err)
+			logger.Error(err)
 			continue
 		}
 		// Check if the MD5 in in the driver slice
@@ -194,7 +194,7 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- outpu
 		// Calculate the SHA1
 		SHA1, err := calcSHA1(job)
 		if err != nil {
-			logger.Catch(err)
+			logger.Error(err)
 			continue
 		}
 		// Check if the SHA1 in in the driver slice
@@ -215,7 +215,7 @@ func Runner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- outpu
 		// Calculate the SHA256
 		SHA256, err := calcSHA256(job)
 		if err != nil {
-			logger.Catch(err)
+			logger.Error(err)
 			continue
 		}
 		// Check if the SHA256 in in the driver slice

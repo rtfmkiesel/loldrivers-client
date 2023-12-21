@@ -4,31 +4,61 @@ package logger
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 var (
 	BeSilent bool = false
 )
 
-// Log() will print to the terminal
-func Log(message string) {
+func Log(msg string) {
 	if !BeSilent {
-		fmt.Printf("%s\n", message)
+		if strings.HasSuffix(msg, "\n") {
+			fmt.Fprint(os.Stdout, msg)
+		} else {
+			fmt.Fprint(os.Stdout, msg+"\n")
+		}
 	}
 }
 
-// Catch() will handle errors
-func Catch(err error) {
-	fmt.Printf("ERROR: %s\n", err)
+func Logf(msg string, args ...interface{}) {
+	if !BeSilent {
+		msg = fmt.Sprintf(msg, args...)
+		if strings.HasSuffix(msg, "\n") {
+			fmt.Fprint(os.Stdout, msg)
+		} else {
+			fmt.Fprint(os.Stdout, msg+"\n")
+		}
+	}
 }
 
-// CatchCrit() will handle critical errors
-func CatchCrit(err error) {
-	fmt.Printf("CRITICAL ERROR: %s\n", err)
+func Error(err error) {
+	fmt.Fprintf(os.Stderr, "[!] ERROR: %s\n", err)
+}
+
+func Errorf(msg string, args ...interface{}) {
+	msg = fmt.Sprintf("[!] ERROR: "+msg, args...)
+	if strings.HasSuffix(msg, "\n") {
+		fmt.Fprint(os.Stderr, msg)
+	} else {
+		fmt.Fprint(os.Stderr, msg+"\n")
+	}
+}
+
+func Fatal(err error) {
+	fmt.Fprintf(os.Stderr, "[!] ERROR: %s\n", err)
+}
+
+func Fatalf(msg string, args ...interface{}) {
+	msg = fmt.Sprintf("[!] ERROR: "+msg, args...)
+	if strings.HasSuffix(msg, "\n") {
+		fmt.Fprint(os.Stderr, msg)
+	} else {
+		fmt.Fprint(os.Stderr, msg+"\n")
+	}
 	os.Exit(1)
 }
 
-// Banner() will print the banner
 func Banner() {
 	if !BeSilent {
 		fmt.Printf(`
