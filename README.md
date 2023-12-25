@@ -10,23 +10,24 @@ The first *blazingly fast* client for [LOLDrivers](https://github.com/magicsword
 ## Usage
 ```
 LOLDrivers-client.exe [OPTIONS]
-
+ 
 Options:
   -m, --mode            Operating Mode {online, local, internal}
                             online = Download the newest driver set (default)
                             local = Use a local drivers.json file (requires '-f')
                             internal = Use the built-in driver set (can be outdated)
 
+  -f, --driver-file     File path to 'drivers.json', when running in local mode
+
   -d, --scan-dir        Directory to scan for drivers (default: Windows driver folders)
                         Files which cannot be opened or read will be silently ignored
+
   -l, --scan-limit      Size limit for files to scan in MB (default: 10)
                         Be aware, higher values greatly increase runtime & CPU usage
 
-  -f, --driver-file     File path to 'drivers.json', when running with '-m local'
-
   -s, --silent          Will only output found files for easy parsing (default: false)
   -j, --json            Format output as JSON (default: false)
-
+    
   -w, --workers         Number of "threads" to spawn (default: 20)
   -h, --help            Shows this text
 ```
