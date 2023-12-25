@@ -1,4 +1,3 @@
-// Package logger handles errors as well as the output handling
 package logger
 
 import (
@@ -36,26 +35,8 @@ func Error(err error) {
 	fmt.Fprintf(os.Stderr, "[!] ERROR: %s\n", err)
 }
 
-func Errorf(msg string, args ...interface{}) {
-	msg = fmt.Sprintf("[!] ERROR: "+msg, args...)
-	if strings.HasSuffix(msg, "\n") {
-		fmt.Fprint(os.Stderr, msg)
-	} else {
-		fmt.Fprint(os.Stderr, msg+"\n")
-	}
-}
-
 func Fatal(err error) {
 	fmt.Fprintf(os.Stderr, "[!] ERROR: %s\n", err)
-}
-
-func Fatalf(msg string, args ...interface{}) {
-	msg = fmt.Sprintf("[!] ERROR: "+msg, args...)
-	if strings.HasSuffix(msg, "\n") {
-		fmt.Fprint(os.Stderr, msg)
-	} else {
-		fmt.Fprint(os.Stderr, msg+"\n")
-	}
 	os.Exit(1)
 }
 

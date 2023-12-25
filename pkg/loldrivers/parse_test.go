@@ -4,7 +4,12 @@ import "testing"
 
 // online
 func TestOnlineParse(t *testing.T) {
-	_, err := download()
+	jsonBytes, err := download()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = parse(jsonBytes)
 	if err != nil {
 		t.Error(err)
 	}
