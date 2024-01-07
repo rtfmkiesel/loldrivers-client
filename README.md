@@ -41,7 +41,7 @@ Download the prebuilt binaries [here](https://github.com/rtfmkiesel/loldrivers-c
 git clone https://github.com/rtfmkiesel/loldrivers-client
 cd loldrivers-client
 go mod tidy
-go build -o LOLDrivers-client.exe -ldflags="-s -w" cli/loldrivers-client/loldrivers-client.go
+go build -o LOLDrivers-client.exe -ldflags="-s -w" cmd/loldrivers-client/loldrivers-client.go
 ```
 
 # Contributing 
