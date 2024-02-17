@@ -1,110 +1,106 @@
 package options
 
 import (
-	"flag"
-	"fmt"
+	"errors"
 	"time"
 
+	"github.com/projectdiscovery/goflags"
 	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 )
 
+var (
+	// The three default Windows driver directories
+	windowsDriverDirs = []string{"C:\\Windows\\System32\\drivers", "C:\\Windows\\System32\\DriverStore\\FileRepository", "C:\\WINDOWS\\inf"}
+)
+
 type Options struct {
-	Mode             string
-	LocalDriversPath string
-	ScanDirectories  []string
-	ScanSizeLimit    int64
-	OutputMode       string
-	Workers          int
-	StartTime        time.Time
+	Mode              string    // Mode to load the drivers (online, local, internal)
+	ModeLocalFilePath string    // Filepath to *.json if mode == local
+	ScanDirectories   []string  // Directories to scan for drivers
+	ScanSizeLimit     int       // File size limit in MB
+	ScanWorkers       int       // Amount of scan (checksum calculation) workers
+	ScanShowErrors    bool      // Display errors during checksum calculation (often file read errors)
+	OutputMode        string    // How to print the results (default, json, grep)
+	StartTime         time.Time // To track execution time
 }
 
 // Parse the command line options into an Options struct
 func Parse() (opt *Options, err error) {
 	opt = &Options{}
-
 	opt.StartTime = time.Now()
 
+	flagSet := goflags.NewFlagSet()
+	flagSet.SetDescription("A tool to scan your computer for known vulnerable and known malicious Windows drivers")
+
+	flagSet.CreateGroup("Mode", "Operating Mode",
+		flagSet.StringVarP(&opt.Mode, "mode", "m", "online", "Operating Mode {online, local, internal}"),
+		flagSet.StringVarP(&opt.ModeLocalFilePath, "driver-file", "f", "", "File path to 'drivers.json', when mode == local"),
+	)
+
 	var flagDir string
-	var flagSilent bool
+	flagSet.CreateGroup("Scan", "Scan options",
+		flagSet.StringVarP(&flagDir, "scan-dir", "d", "", "Directory to scan for drivers (default: Windows driver folders)"),
+		flagSet.IntVarP(&opt.ScanSizeLimit, "scan-size", "l", 10, "Size limit for files to scan in MB"),
+		flagSet.IntVarP(&opt.ScanWorkers, "workers", "w", 20, "Number of checksum \"threads\" to spawn"),
+		flagSet.BoolVarP(&opt.ScanShowErrors, "surpress-errors", "s", false, "Do not show file read errors when calculating checksums"),
+	)
+
+	var flagGrepable bool
 	var flagJson bool
-	flag.StringVar(&opt.Mode, "m", "online", "")
-	flag.StringVar(&opt.Mode, "mode", "online", "")
-	flag.StringVar(&opt.LocalDriversPath, "f", "", "")
-	flag.StringVar(&opt.LocalDriversPath, "driver-file", "", "")
-	flag.StringVar(&flagDir, "d", "", "")
-	flag.StringVar(&flagDir, "scan-dir", "", "")
-	flag.Int64Var(&opt.ScanSizeLimit, "l", 10, "")
-	flag.Int64Var(&opt.ScanSizeLimit, "scan-limit", 10, "")
-	flag.BoolVar(&flagSilent, "s", false, "")
-	flag.BoolVar(&flagSilent, "silent", false, "")
-	flag.BoolVar(&flagJson, "j", false, "")
-	flag.BoolVar(&flagJson, "json", false, "")
-	flag.IntVar(&opt.Workers, "w", 20, "")
-	flag.IntVar(&opt.Workers, "workers", 20, "")
-	flag.Usage = func() { usage() }
-	flag.Parse()
+	flagSet.CreateGroup("Output", "Output options",
+		flagSet.BoolVarP(&flagGrepable, "grepable", "g", false, "Will only output found files for easy parsing"),
+		flagSet.BoolVarP(&flagJson, "json", "j", false, "Format output as JSON"),
+	)
+
+	if err := flagSet.Parse(); err != nil {
+		return nil, err
+	}
+
+	logger.Verbose = true
 
 	switch opt.Mode {
 	case "online", "internal":
 		// we good
 	case "local":
-		if opt.Mode == "local" && opt.LocalDriversPath == "" {
-			return nil, fmt.Errorf("mode 'local' requires '-f'")
+		if opt.ModeLocalFilePath == "" {
+			return nil, errors.New("-m/--mode 'local' requires '-f/--driver-file'")
 		}
 	default:
-		return nil, fmt.Errorf("invalid mode '%s'", opt.Mode)
+		return nil, errors.New("invalid mode")
 	}
 
 	// Only one output style
-	if flagSilent && flagJson {
-		return nil, fmt.Errorf("only use '-s' or '-j', not both")
-	} else if flagSilent {
-		opt.OutputMode = "silent"
-		logger.BeSilent = true
+	if flagGrepable && flagJson {
+		return nil, errors.New("only use '-g/--grepable' or '-j/--json', not both")
+	} else if flagGrepable {
+		opt.OutputMode = "grep"
+		logger.Verbose = false
 	} else if flagJson {
 		opt.OutputMode = "json"
-		logger.BeSilent = true
+		logger.Verbose = false
 	}
 
-	logger.Banner()
-
-	// Directories
 	if flagDir == "" {
-		// User did not specify a path with '-d', use the default Windows opt.Directories
-		opt.ScanDirectories = append(opt.ScanDirectories, "C:\\Windows\\System32\\drivers")
-		opt.ScanDirectories = append(opt.ScanDirectories, "C:\\Windows\\System32\\DriverStore\\FileRepository")
-		opt.ScanDirectories = append(opt.ScanDirectories, "C:\\WINDOWS\\inf")
+		// User did not specify a path with '-d', use the default Windows directories
+		opt.ScanDirectories = windowsDriverDirs
 	} else {
 		// User specified a custom folder to scan
 		opt.ScanDirectories = append(opt.ScanDirectories, flagDir)
 	}
 
+	printBanner()
+
 	return opt, nil
 }
 
-func usage() {
-	logger.Banner()
-	fmt.Println(`Usage:
-  LOLDrivers-client.exe [OPTIONS]
- 
-Options:
-  -m, --mode            Operating Mode {online, local, internal}
-                            online = Download the newest driver set (default)
-                            local = Use a local drivers.json file (requires '-f')
-                            internal = Use the built-in driver set (can be outdated)
+func printBanner() {
+	logger.PlainStderr(`
+  ╔─────────────────────────────────────╗
+  │          LOLDrivers-client          │
+  │      https://www.loldrivers.io      │
+  │                                     │
+  │    https://github.com/rtfmkiesel    │ 
+  ╚─────────────────────────────────────╝
 
-  -f, --driver-file     File path to 'drivers.json', when running in local mode
-
-  -d, --scan-dir        Directory to scan for drivers (default: Windows driver folders)
-                        Files which cannot be opened or read will be silently ignored
-
-  -l, --scan-limit      Size limit for files to scan in MB (default: 10)
-                        Be aware, higher values greatly increase runtime & CPU usage
-
-  -s, --silent          Will only output found files for easy parsing (default: false)
-  -j, --json            Format output as JSON (default: false)
-
-  -w, --workers         Number of "threads" to spawn (default: 20)
-  -h, --help            Shows this text
-  `)
+`)
 }

@@ -4,21 +4,19 @@ import "testing"
 
 // online
 func TestOnlineParse(t *testing.T) {
-	jsonBytes, err := download()
+	jsonBytes, err := downloadNewestData()
 	if err != nil {
 		t.Error(err)
 	}
 
-	_, err = parse(jsonBytes)
-	if err != nil {
+	if err := loadJsonIntoHashmaps(jsonBytes); err != nil {
 		t.Error(err)
 	}
 }
 
 // internal
 func TestInternalParse(t *testing.T) {
-	_, err := parse(internalDrivers)
-	if err != nil {
+	if err := loadJsonIntoHashmaps(internalDrivers); err != nil {
 		t.Error(err)
 	}
 }

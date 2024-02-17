@@ -7,12 +7,11 @@ import (
 	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 )
 
-// checksums.FileWalker() will recursively send files from path, who are smaller than sizeLimit, to outputChannel
-func FileWalker(path string, sizeLimit int64, outputChannel chan<- string) (err error) {
-	logger.Logf("[*] Searching for files in %s", path)
+// Will recursively walk and send filepaths from root, who are smaller than sizeLimit to filepaths
+func DirectoryWalker(root string, sizeLimit int, filepaths chan<- string) (err error) {
+	logger.Info("Checking %s", root)
 
-	// Walk over every file in a given folder
-	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// Ignore a file if we get "Access is denied" error
 			if os.IsPermission(err) {
@@ -38,12 +37,11 @@ func FileWalker(path string, sizeLimit int64, outputChannel chan<- string) (err 
 		}
 
 		// Skip files larger than the specified size limit
-		if info.Size() > sizeLimit*1024*1024 {
+		if info.Size() > int64(sizeLimit)*1024*1024 {
 			return nil
 		}
 
-		// Send to the channel
-		outputChannel <- path
+		filepaths <- path
 		return nil
 	})
 

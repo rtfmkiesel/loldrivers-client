@@ -5,55 +5,68 @@ import (
 
 	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 	"github.com/rtfmkiesel/loldrivers-client/pkg/loldrivers"
-	"github.com/rtfmkiesel/loldrivers-client/pkg/result"
 )
 
-// checksums.CalcRunner() is used as a go func for calculating and comparing file checksums
-// from a chanJobs. If a calculated checksum matches a loaded checksum a result.Result will be sent to chanResults
-func CalcRunner(wg *sync.WaitGroup, chanJobs <-chan string, chanResults chan<- result.Result) {
+type Result struct {
+	Filepath string             `json:"Filepath"`
+	Checksum string             `json:"Checksum"`
+	Driver   *loldrivers.Driver `json:"LOLDrivers-Entry"`
+}
+
+// Is used as a go func for calculating and comparing file checksums
+func Runner(wg *sync.WaitGroup, filepaths <-chan string, results chan<- *Result, silenceErrors bool) {
 	defer wg.Done()
 
-	for job := range chanJobs {
-		// SHA256
-		sha256, err := calcSHA256(job)
-		if err != nil {
-			logger.Error(err)
-		} else if driver := loldrivers.MatchHash(sha256); driver != nil {
-			chanResults <- result.Result{
-				Filepath: job,
-				Checksum: sha256,
-				Driver:   *driver,
-			}
+	for filepath := range filepaths {
+		// The order of the hash checks was choosen based on the amount of hashes upon writing this bit
+		// SHA1 > SHA2 > MD5
 
+		sha1, err := calcSHA1(filepath)
+		if err != nil && !silenceErrors {
+			logger.Error(err)
 			continue
+		} else {
+			matched, driver := loldrivers.MatchHash(sha1)
+			if matched {
+				results <- &Result{
+					Filepath: filepath,
+					Checksum: sha1,
+					Driver:   driver,
+				}
+
+				continue // No need to check others as there was a match
+			}
 		}
 
-		// SHA1
-		sha1, err := calcSHA1(job)
-		if err != nil {
+		sha256, err := calcSHA256(filepath)
+		if err != nil && !silenceErrors {
 			logger.Error(err)
-		} else if driver := loldrivers.MatchHash(sha1); driver != nil {
-			chanResults <- result.Result{
-				Filepath: job,
-				Checksum: sha1,
-				Driver:   *driver,
-			}
-
 			continue
+		} else {
+			matched, driver := loldrivers.MatchHash(sha256)
+			if matched {
+				results <- &Result{
+					Filepath: filepath,
+					Checksum: sha256,
+					Driver:   driver,
+				}
+
+				continue // No need to check others as there was a match
+			}
 		}
 
-		// MD5
-		md5, err := calcMD5(job)
-		if err != nil {
+		md5, err := calcMD5(filepath)
+		if err != nil && !silenceErrors {
 			logger.Error(err)
-		} else if driver := loldrivers.MatchHash(md5); driver != nil {
-			chanResults <- result.Result{
-				Filepath: job,
-				Checksum: md5,
-				Driver:   *driver,
+		} else {
+			matched, driver := loldrivers.MatchHash(md5)
+			if matched {
+				results <- &Result{
+					Filepath: filepath,
+					Checksum: md5,
+					Driver:   driver,
+				}
 			}
-
-			continue
 		}
 	}
 }

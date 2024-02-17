@@ -3,21 +3,18 @@ package loldrivers
 import (
 	_ "embed"
 	"encoding/json"
-	"io"
-	"net/http"
-
-	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 )
 
 var (
-	// Embed a driver.json during build for use with -m 'internal'
+	// Embed a driver.json during build for use with internal mode
 	//go:embed drivers.json
 	internalDrivers []byte
 )
 
-const (
-	// Download Url
-	apiUrl = "https://www.loldrivers.io/api/drivers.json"
+var (
+	md5Sums  = make(map[string]*Driver) // Hashmap for all the MD5 checksums of the drivers
+	sha1Sums = make(map[string]*Driver) // Hashmap for all the SHA1 checksums of the drivers
+	sha2Sums = make(map[string]*Driver) // Hashmap for all the SHA2 checksums of the drivers
 )
 
 // Struct for a single driver from loldrivers.io
@@ -60,13 +57,6 @@ type Command struct {
 	Usecase         string `json:"Usecase"`
 	Privileges      string `json:"Privileges"`
 	OperatingSystem string `json:"OperatingSystem"`
-}
-
-// Struct to store the driver hashes from loldrivers.io
-type DriverHashes struct {
-	MD5Sums    []string
-	SHA1Sums   []string
-	SHA256Sums []string
 }
 
 // Struct that is used during unmarshalling of the "Commands" JSON data
@@ -133,37 +123,21 @@ func (s *unmarshalStringOrStringArray) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// download() will download the current loldrivers.io data set as []byte
-func download() ([]byte, error) {
-	logger.Log("[*] Downloading the newest drivers")
+// Will parse the JSON into a struct and create hashmaps for the drivers
+func loadJsonIntoHashmaps(jsonBytes []byte) error {
+	drivers := []*Driver{}
 
-	client := &http.Client{}
-	request, err := http.NewRequest("GET", apiUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	request.Header.Set("User-Agent", "LOLDrivers-client")
-
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	jsonBytes, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return jsonBytes, nil
-}
-
-// parse() will return a slice of loldrivers.Drivers from JSON input bytes
-func parse(jsonBytes []byte) (drivers []Driver, err error) {
 	if err := json.Unmarshal(jsonBytes, &drivers); err != nil {
-		return nil, err
+		return err
 	}
 
-	return drivers, nil
+	for _, driver := range drivers {
+		for _, knownVulnSample := range driver.KnownVulnerableSamples {
+			md5Sums[knownVulnSample.MD5] = driver
+			sha1Sums[knownVulnSample.SHA1] = driver
+			sha2Sums[knownVulnSample.SHA256] = driver
+		}
+	}
+
+	return nil
 }

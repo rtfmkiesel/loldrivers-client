@@ -3,33 +3,27 @@
 
 The first *blazingly fast* client for [LOLDrivers](https://github.com/magicsword-io/LOLDrivers) (Living Off The Land Drivers) by [MagicSword](https://www.magicsword.io/). Scan your computer for known vulnerable and known malicious Windows drivers.
 
-
 ![](demo.gif)
-
 
 ## Usage
 ```
-LOLDrivers-client.exe [OPTIONS]
- 
-Options:
-  -m, --mode            Operating Mode {online, local, internal}
-                            online = Download the newest driver set (default)
-                            local = Use a local drivers.json file (requires '-f')
-                            internal = Use the built-in driver set (can be outdated)
+Usage:
+  loldrivers-client.exe [flags]
 
-  -f, --driver-file     File path to 'drivers.json', when running in local mode
+Flags:
+OPERATING MODE:
+   -m, -mode string         Operating Mode {online, local, internal} (default "online")
+   -f, -driver-file string  File path to 'drivers.json', when mode == local
 
-  -d, --scan-dir        Directory to scan for drivers (default: Windows driver folders)
-                        Files which cannot be opened or read will be silently ignored
+SCAN OPTIONS:
+   -d, -scan-dir string  Directory to scan for drivers (default: Windows driver folders)
+   -l, -scan-size int    Size limit for files to scan in MB (default 10)
+   -w, -workers int      Number of checksum "threads" to spawn (default 20)
+   -s, -surpress-errors  Do not show file read errors when calculating checksums
 
-  -l, --scan-limit      Size limit for files to scan in MB (default: 10)
-                        Be aware, higher values greatly increase runtime & CPU usage
-
-  -s, --silent          Will only output found files for easy parsing (default: false)
-  -j, --json            Format output as JSON (default: false)
-    
-  -w, --workers         Number of "threads" to spawn (default: 20)
-  -h, --help            Shows this text
+OUTPUT OPTIONS:
+   -g, -grepable  Will only output found files for easy parsing
+   -j, -json      Format output as JSON
 ```
 
 ## Installation
@@ -37,7 +31,7 @@ Options:
 Download the prebuilt binaries [here](https://github.com/rtfmkiesel/loldrivers-client/releases).
 
 ## Build from source
-```bash
+```
 git clone https://github.com/rtfmkiesel/loldrivers-client
 cd loldrivers-client
 go mod tidy
