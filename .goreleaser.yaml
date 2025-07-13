@@ -1,3 +1,4 @@
+version: 2
 env:
   - CGO_ENABLED=1
   - GO111MODULE=on
@@ -20,10 +21,9 @@ builds:
 
 archives:
   - 
-    format: zip
+    formats: zip
     name_template: >-
       LOLDrivers-client_Windows_{{ .Arch }}
     files:
       - "README.md"
       - "LICENSE"
-    rlcp: true
