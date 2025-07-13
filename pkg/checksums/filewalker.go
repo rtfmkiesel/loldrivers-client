@@ -8,10 +8,10 @@ import (
 )
 
 // Will recursively walk and send filepaths from root, who are smaller than sizeLimit to filepaths
-func DirectoryWalker(root string, sizeLimit int, filepaths chan<- string) (err error) {
-	logger.Info("Checking %s", root)
+func DirectoryWalker(root string, sizeLimit int, filepaths chan<- string) error {
+	logger.Debug("Checking %s", root)
 
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// Ignore a file if we get "Access is denied" error
 			if os.IsPermission(err) {

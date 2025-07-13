@@ -17,55 +17,35 @@ type Result struct {
 func Runner(wg *sync.WaitGroup, filepaths <-chan string, results chan<- *Result, silenceErrors bool) {
 	defer wg.Done()
 
+	hashFuncs := []struct {
+		name string
+		fn   func(string) (string, error)
+	}{
+		{"SHA1", calcSHA1},
+		{"SHA256", calcSHA256},
+		{"MD5", calcMD5},
+	}
+
 	for filepath := range filepaths {
 		// The order of the hash checks was choosen based on the amount of hashes upon writing this bit
 		// SHA1 > SHA2 > MD5
 
-		sha1, err := calcSHA1(filepath)
-		if err != nil && !silenceErrors {
-			logger.Error(err)
-			continue
-		} else {
-			matched, driver := loldrivers.MatchHash(sha1)
-			if matched {
-				results <- &Result{
-					Filepath: filepath,
-					Checksum: sha1,
-					Driver:   driver,
+		for _, hash := range hashFuncs {
+			checksum, err := hash.fn(filepath)
+			if err != nil {
+				if !silenceErrors {
+					logger.Errorf("Error calculating %s for %s: %v", hash.name, filepath, err)
 				}
-
-				continue // No need to check others as there was a match
+				continue
 			}
-		}
 
-		sha256, err := calcSHA256(filepath)
-		if err != nil && !silenceErrors {
-			logger.Error(err)
-			continue
-		} else {
-			matched, driver := loldrivers.MatchHash(sha256)
-			if matched {
+			if matched, driver := loldrivers.MatchHash(checksum); matched {
 				results <- &Result{
 					Filepath: filepath,
-					Checksum: sha256,
+					Checksum: checksum,
 					Driver:   driver,
 				}
-
-				continue // No need to check others as there was a match
-			}
-		}
-
-		md5, err := calcMD5(filepath)
-		if err != nil && !silenceErrors {
-			logger.Error(err)
-		} else {
-			matched, driver := loldrivers.MatchHash(md5)
-			if matched {
-				results <- &Result{
-					Filepath: filepath,
-					Checksum: md5,
-					Driver:   driver,
-				}
+				break // Found a match, skip remaining hashes
 			}
 		}
 	}

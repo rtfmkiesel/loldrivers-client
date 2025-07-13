@@ -4,8 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 	flag "github.com/spf13/pflag"
+
+	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 )
 
 var (
@@ -25,27 +26,27 @@ type Options struct {
 }
 
 // Parse the command line options into an Options struct
-func Parse() (opt *Options, err error) {
-	opt = &Options{}
-	opt.StartTime = time.Now()
+func Parse() (*Options, error) {
+	opt := &Options{
+		StartTime: time.Now(),
+	}
+
+	var (
+		flagDir      string
+		flagGrepable bool
+		flagJson     bool
+	)
 
 	flag.StringVarP(&opt.Mode, "mode", "m", "online", "Operating Mode {online, local, internal}")
 	flag.StringVarP(&opt.ModeLocalFilePath, "driver-file", "f", "", "File path to 'drivers.json', when mode == local")
-
-	var flagDir string
 	flag.StringVarP(&flagDir, "scan-dir", "d", "", "Directory to scan for drivers (default: Windows driver folders)")
 	flag.IntVarP(&opt.ScanSizeLimit, "scan-size", "l", 10, "Size limit for files to scan in MB")
 	flag.IntVarP(&opt.ScanWorkers, "workers", "w", 20, "Number of checksum \"threads\" to spawn")
 	flag.BoolVarP(&opt.ScanShowErrors, "surpress-errors", "s", false, "Do not show file read errors when calculating checksums")
-
-	var flagGrepable bool
-	var flagJson bool
 	flag.BoolVarP(&flagGrepable, "grepable", "g", false, "Will only output found files for easy parsing")
 	flag.BoolVarP(&flagJson, "json", "j", false, "Format output as JSON")
 
 	flag.Parse()
-
-	logger.Verbose = true
 
 	switch opt.Mode {
 	case "online", "internal":
@@ -61,20 +62,25 @@ func Parse() (opt *Options, err error) {
 	// Only one output style
 	if flagGrepable && flagJson {
 		return nil, errors.New("only use '-g/--grepable' or '-j/--json', not both")
-	} else if flagGrepable {
-		opt.OutputMode = "grep"
-		logger.Verbose = false
-	} else if flagJson {
-		opt.OutputMode = "json"
-		logger.Verbose = false
 	}
 
-	if flagDir == "" {
+	switch {
+	case flagGrepable:
+		opt.OutputMode = "grep"
+		logger.ShowDebugOutput = false
+	case flagJson:
+		opt.OutputMode = "json"
+		logger.ShowDebugOutput = false
+	default:
+		logger.ShowDebugOutput = true
+	}
+
+	if flagDir != "" {
+		// User specified a custom folder to scan
+		opt.ScanDirectories = []string{flagDir}
+	} else {
 		// User did not specify a path with '-d', use the default Windows directories
 		opt.ScanDirectories = windowsDriverDirs
-	} else {
-		// User specified a custom folder to scan
-		opt.ScanDirectories = append(opt.ScanDirectories, flagDir)
 	}
 
 	printBanner()
@@ -83,7 +89,7 @@ func Parse() (opt *Options, err error) {
 }
 
 func printBanner() {
-	logger.PlainStderr(`
+	logger.Stderr(`
   ╔─────────────────────────────────────╗
   │          LOLDrivers-client          │
   │      https://www.loldrivers.io      │

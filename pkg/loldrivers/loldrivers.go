@@ -1,6 +1,7 @@
 package loldrivers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -9,41 +10,26 @@ import (
 )
 
 // Will load the drivers based on the selected mode (online, local (requires filePath), internal)
-func LoadDrivers(mode string, filePath string) (err error) {
-	var jsonData []byte
+func LoadDrivers(mode string, filePath string) error {
+	var (
+		jsonData []byte
+		err      error
+	)
 
 	switch mode {
 	case "online":
 		jsonData, err = downloadNewestData()
-		if err != nil {
-			logger.Error(err)
-			jsonData = internalDrivers // Fallback
-		}
-
 	case "local":
-		jsonData, err = func() (b []byte, err error) {
-			// Read the local .json file
-			fp, err := os.Open(filePath) // #nosec G304
-			if err != nil {
-				return nil, err
-			}
-			defer fp.Close()
-
-			b, err = io.ReadAll(fp)
-			if err != nil {
-				return nil, err
-			}
-
-			return b, nil
-		}()
-
-		if err != nil {
-			logger.Error(err)
-			jsonData = internalDrivers // Fallback
-		}
-
+		jsonData, err = os.ReadFile(filePath) // #nosec G304
 	case "internal":
-		// Use the built in ones
+		jsonData = internalDrivers
+	default:
+		return fmt.Errorf("invalid mode: %s", mode)
+	}
+
+	if err != nil {
+		logger.Error(err)
+		logger.Debug("Falling back to internal drivers")
 		jsonData = internalDrivers
 	}
 
@@ -55,7 +41,7 @@ func LoadDrivers(mode string, filePath string) (err error) {
 }
 
 // Will return true and a pointer to the matching driver, else return false and nil
-func MatchHash(hash string) (matched bool, match *Driver) {
+func MatchHash(hash string) (bool, *Driver) {
 	switch len(hash) {
 	case 32:
 		if driver := md5Sums[hash]; driver != nil {
@@ -74,9 +60,9 @@ func MatchHash(hash string) (matched bool, match *Driver) {
 	return false, nil
 }
 
-// Downloads the newset driver set from the loldrivers API
+// Downloads the newset driver set from the loldrivers.io API
 func downloadNewestData() ([]byte, error) {
-	logger.Info("Downloading the newest data set")
+	logger.Debug("Downloading the newest data set")
 
 	client := &http.Client{}
 	request, err := http.NewRequest("GET", "https://www.loldrivers.io/api/drivers.json", nil)
