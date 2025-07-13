@@ -43,7 +43,7 @@ func LoadDrivers(mode string, filePath string) (err error) {
 		}
 
 	case "internal":
-		// Use the build in ones
+		// Use the built in ones
 		jsonData = internalDrivers
 	}
 
