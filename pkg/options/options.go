@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/projectdiscovery/goflags"
 	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
+	flag "github.com/spf13/pflag"
 )
 
 var (
@@ -29,32 +29,21 @@ func Parse() (opt *Options, err error) {
 	opt = &Options{}
 	opt.StartTime = time.Now()
 
-	flagSet := goflags.NewFlagSet()
-	flagSet.SetDescription("A tool to scan your computer for known vulnerable and known malicious Windows drivers")
-
-	flagSet.CreateGroup("Mode", "Operating Mode",
-		flagSet.StringVarP(&opt.Mode, "mode", "m", "online", "Operating Mode {online, local, internal}"),
-		flagSet.StringVarP(&opt.ModeLocalFilePath, "driver-file", "f", "", "File path to 'drivers.json', when mode == local"),
-	)
+	flag.StringVarP(&opt.Mode, "mode", "m", "online", "Operating Mode {online, local, internal}")
+	flag.StringVarP(&opt.ModeLocalFilePath, "driver-file", "f", "", "File path to 'drivers.json', when mode == local")
 
 	var flagDir string
-	flagSet.CreateGroup("Scan", "Scan options",
-		flagSet.StringVarP(&flagDir, "scan-dir", "d", "", "Directory to scan for drivers (default: Windows driver folders)"),
-		flagSet.IntVarP(&opt.ScanSizeLimit, "scan-size", "l", 10, "Size limit for files to scan in MB"),
-		flagSet.IntVarP(&opt.ScanWorkers, "workers", "w", 20, "Number of checksum \"threads\" to spawn"),
-		flagSet.BoolVarP(&opt.ScanShowErrors, "surpress-errors", "s", false, "Do not show file read errors when calculating checksums"),
-	)
+	flag.StringVarP(&flagDir, "scan-dir", "d", "", "Directory to scan for drivers (default: Windows driver folders)")
+	flag.IntVarP(&opt.ScanSizeLimit, "scan-size", "l", 10, "Size limit for files to scan in MB")
+	flag.IntVarP(&opt.ScanWorkers, "workers", "w", 20, "Number of checksum \"threads\" to spawn")
+	flag.BoolVarP(&opt.ScanShowErrors, "surpress-errors", "s", false, "Do not show file read errors when calculating checksums")
 
 	var flagGrepable bool
 	var flagJson bool
-	flagSet.CreateGroup("Output", "Output options",
-		flagSet.BoolVarP(&flagGrepable, "grepable", "g", false, "Will only output found files for easy parsing"),
-		flagSet.BoolVarP(&flagJson, "json", "j", false, "Format output as JSON"),
-	)
+	flag.BoolVarP(&flagGrepable, "grepable", "g", false, "Will only output found files for easy parsing")
+	flag.BoolVarP(&flagJson, "json", "j", false, "Format output as JSON")
 
-	if err := flagSet.Parse(); err != nil {
-		return nil, err
-	}
+	flag.Parse()
 
 	logger.Verbose = true
 
