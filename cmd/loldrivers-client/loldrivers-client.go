@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+
 	"github.com/rtfmkiesel/loldrivers-client/pkg/checksums"
 	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 	"github.com/rtfmkiesel/loldrivers-client/pkg/loldrivers"
@@ -38,14 +39,14 @@ func main() {
 		for result := range chanResults {
 			switch opt.OutputMode {
 			case "grep":
-				logger.PlainStdout("%s", result.Filepath)
+				logger.Stdout("%s", result.Filepath)
 			case "json":
 				jsonOutput, err := json.Marshal(result)
 				if err != nil {
 					logger.Error(err)
 					continue
 				}
-				logger.PlainStdout("%s", string(jsonOutput))
+				logger.Stdout("%s", string(jsonOutput))
 			default:
 				logger.Custom("VUL", color.FgRed, "%s (https://loldrivers.io/drivers/%s)", result.Filepath, result.Driver.ID)
 			}
@@ -65,5 +66,5 @@ func main() {
 	close(chanResults)
 	wgOutput.Wait()
 
-	logger.Info("Finished in %s", time.Since(opt.StartTime))
+	logger.Debug("Finished in %s", time.Since(opt.StartTime))
 }
