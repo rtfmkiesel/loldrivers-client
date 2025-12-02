@@ -1,8 +1,6 @@
 package checksums
 
 import (
-	"sync"
-
 	"github.com/rtfmkiesel/loldrivers-client/pkg/logger"
 	"github.com/rtfmkiesel/loldrivers-client/pkg/loldrivers"
 )
@@ -14,9 +12,7 @@ type Result struct {
 }
 
 // Is used as a go func for calculating and comparing file checksums
-func Runner(wg *sync.WaitGroup, filepaths <-chan string, results chan<- *Result, silenceErrors bool) {
-	defer wg.Done()
-
+func Runner(filepaths <-chan string, results chan<- *Result, silenceErrors bool) {
 	hashFuncs := []struct {
 		name string
 		fn   func(string) (string, error)
@@ -27,9 +23,6 @@ func Runner(wg *sync.WaitGroup, filepaths <-chan string, results chan<- *Result,
 	}
 
 	for filepath := range filepaths {
-		// The order of the hash checks was choosen based on the amount of hashes upon writing this bit
-		// SHA1 > SHA2 > MD5
-
 		for _, hash := range hashFuncs {
 			checksum, err := hash.fn(filepath)
 			if err != nil {

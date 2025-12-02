@@ -25,17 +25,18 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	chanFilepaths := make(chan string)
+	chanFilepaths := make(chan string, opt.ScanWorkers*2)
 	chanResults := make(chan *checksums.Result)
 	wgChecksums := new(sync.WaitGroup)
-	for i := 0; i <= opt.ScanWorkers; i++ {
-		go checksums.Runner(wgChecksums, chanFilepaths, chanResults, opt.ScanShowErrors)
-		wgChecksums.Add(1)
+
+	for i := 1; i <= opt.ScanWorkers; i++ {
+		wgChecksums.Go(func() {
+			checksums.Runner(chanFilepaths, chanResults, opt.ScanShowErrors)
+		})
 	}
 
 	wgOutput := new(sync.WaitGroup)
-	go func() {
-		defer wgOutput.Done()
+	wgOutput.Go(func() {
 		for result := range chanResults {
 			switch opt.OutputMode {
 			case "grep":
@@ -51,13 +52,11 @@ func main() {
 				logger.Custom("VUL", color.FgRed, "%s (https://loldrivers.io/drivers/%s)", result.Filepath, result.Driver.ID)
 			}
 		}
-	}()
-	wgOutput.Add(1)
+	})
 
 	for _, path := range opt.ScanDirectories {
 		if err := checksums.DirectoryWalker(path, opt.ScanSizeLimit, chanFilepaths); err != nil {
 			logger.Error(err)
-			continue
 		}
 	}
 

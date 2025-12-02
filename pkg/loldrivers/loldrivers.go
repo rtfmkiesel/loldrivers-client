@@ -42,22 +42,20 @@ func LoadDrivers(mode string, filePath string) error {
 
 // Will return true and a pointer to the matching driver, else return false and nil
 func MatchHash(hash string) (bool, *Driver) {
+	var driver *Driver
+
 	switch len(hash) {
 	case 32:
-		if driver := md5Sums[hash]; driver != nil {
-			return true, driver
-		}
+		driver = md5Sums[hash]
 	case 40:
-		if driver := sha1Sums[hash]; driver != nil {
-			return true, driver
-		}
+		driver = sha1Sums[hash]
 	case 64:
-		if driver := sha2Sums[hash]; driver != nil {
-			return true, driver
-		}
+		driver = sha2Sums[hash]
+	default:
+		return false, nil
 	}
 
-	return false, nil
+	return driver != nil, driver
 }
 
 // Downloads the newset driver set from the loldrivers.io API

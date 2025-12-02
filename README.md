@@ -29,7 +29,7 @@ Copy and paste the command into a PowerShell session.
 # Downloads the client to the PWD
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/rtfmkiesel/loldrivers-client/refs/heads/main/scripts/run.ps1)))
 
-# Downloads, runs and deleted the client
+# Downloads, runs and deletes the client
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/rtfmkiesel/loldrivers-client/refs/heads/main/scripts/run.ps1))) -temp
 ```
 
@@ -43,7 +43,7 @@ Download the prebuilt binaries [here](https://github.com/rtfmkiesel/loldrivers-c
 git clone https://github.com/rtfmkiesel/loldrivers-client
 cd loldrivers-client
 go mod tidy
-go build -o LOLDrivers-client.exe -ldflags="-s -w" cmd/loldrivers-client/loldrivers-client.go
+go build -o LOLDrivers-client.exe -ldflags="-s -w" ./cmd/loldrivers-client/loldrivers-client.go
 ```
 
 # Contributing 

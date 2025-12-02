@@ -133,9 +133,15 @@ func loadJsonIntoHashmaps(jsonBytes []byte) error {
 
 	for _, driver := range drivers {
 		for _, knownVulnSample := range driver.KnownVulnerableSamples {
-			md5Sums[knownVulnSample.MD5] = driver
-			sha1Sums[knownVulnSample.SHA1] = driver
-			sha2Sums[knownVulnSample.SHA256] = driver
+			if knownVulnSample.MD5 != "" {
+				md5Sums[knownVulnSample.MD5] = driver
+			}
+			if knownVulnSample.SHA1 != "" {
+				sha1Sums[knownVulnSample.SHA1] = driver
+			}
+			if knownVulnSample.SHA256 != "" {
+				sha2Sums[knownVulnSample.SHA256] = driver
+			}
 		}
 	}
 
