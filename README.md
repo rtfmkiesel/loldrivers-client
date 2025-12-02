@@ -21,6 +21,18 @@ Usage of LOLDrivers-client.exe:
 
 ## Installation
 
+### From the Web
+
+Copy and paste the command into a PowerShell session.
+
+```ps1
+# Downloads the client to the PWD
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/rtfmkiesel/loldrivers-client/refs/heads/main/scripts/run.ps1)))
+
+# Downloads, runs and deleted the client
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/rtfmkiesel/loldrivers-client/refs/heads/main/scripts/run.ps1))) -temp
+```
+
 ### Binaries
 
 Download the prebuilt binaries [here](https://github.com/rtfmkiesel/loldrivers-client/releases).
