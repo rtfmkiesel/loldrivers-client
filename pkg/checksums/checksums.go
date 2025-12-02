@@ -17,7 +17,7 @@ func calcSHA256(filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
@@ -36,7 +36,7 @@ func calcSHA1(filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	hash := sha1.New() //#nosec G401
 	if _, err := io.Copy(hash, file); err != nil {
@@ -55,7 +55,7 @@ func calcMD5(filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	hash := md5.New() //#nosec G401
 	if _, err := io.Copy(hash, file); err != nil {

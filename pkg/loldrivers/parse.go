@@ -28,12 +28,12 @@ type Driver struct {
 	MitreID         string            `json:"MitreID"`
 	Category        string            `json:"Category"`
 	Verified        string            `json:"Verified"`
-	Commands        unmarshalCommands `json:"Commands,omitempty"`
+	Commands        unmarshalCommands `json:"Commands"`
 	Resources       []string          `json:"Resources,omitempty"`
 	Acknowledgement struct {
 		Person unmarshalStringOrStringArray `json:"Person"`
 		Handle string                       `json:"Handle"`
-	} `json:"Acknowledgement,omitempty"`
+	} `json:"Acknowledgement"`
 	Detection []struct {
 		Type  string `json:"type"`
 		Value string `json:"value"`

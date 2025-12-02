@@ -75,7 +75,7 @@ func downloadNewestData() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer response.Body.Close() //nolint:errcheck
 
 	jsonBytes, err := io.ReadAll(response.Body)
 	if err != nil {
