@@ -1,4 +1,5 @@
 param(
+    [switch]$run,
     [switch]$temp
 )
 
@@ -25,10 +26,13 @@ $cleanupExtractDir = $false
 
 try {
     # Get latest release
+    Write-Host "Fetching latest release..." -ForegroundColor Cyan
     $release = Invoke-RestMethod "https://api.github.com/repos/$repo/releases/latest"
     if (-not $release) { throw "Failed to fetch release info" }
+    Write-Host "[+] Found release $(($release.tag_name))" -ForegroundColor Green
 
     # Download checksum
+    Write-Host "Downloading checksum..." -ForegroundColor Cyan
     $checksumAsset = $release.assets | Where-Object { $_.name -like "loldrivers-client_*checksums.txt" }
     if (-not $checksumAsset) { throw "Checksum file not found in release" }
     
@@ -37,6 +41,7 @@ try {
     
     $checksumContent = [System.Text.Encoding]::UTF8.GetString($checksumResponse.Content)
     if (-not $checksumContent) { throw "Checksum file is empty" }
+    Write-Host "[+] Checksum downloaded" -ForegroundColor Green
 
     # Parse checksum
     $checksumLine = $checksumContent -split "`n" | Where-Object { $_ -match $fileName }
@@ -46,6 +51,7 @@ try {
     if (-not $expectedHash) { throw "Failed to parse checksum" }
 
     # Download zip
+    Write-Host "Downloading $fileName..." -ForegroundColor Cyan
     $zipAsset = $release.assets | Where-Object { $_.name -eq $fileName }
     if (-not $zipAsset) { throw "$fileName not found in release" }
     
@@ -53,17 +59,29 @@ try {
     Invoke-WebRequest $zipAsset.browser_download_url -OutFile $zipPath
     
     if (-not (Test-Path $zipPath)) { throw "Failed to download $fileName" }
+    Write-Host "[+] Downloaded" -ForegroundColor Green
     
     # Verify checksum
+    Write-Host "Verifying checksum..." -ForegroundColor Cyan
     $actualHash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLower()
     if ($actualHash -ne $expectedHash) {
         throw "Checksum mismatch: expected $expectedHash, got $actualHash"
     }
+    Write-Host "[+] Checksum verified" -ForegroundColor Green
 
-    # Extract and run
+    # Extract
+    Write-Host "Extracting to $extractDir..." -ForegroundColor Cyan
     Expand-Archive $zipPath -DestinationPath $extractDir -Force
     $cleanupExtractDir = $true
-	& "$extractDir\LOLDrivers-client.exe"
+    Write-Host "[+] Extracted" -ForegroundColor Green
+
+    # Run if requested
+    if ($run -or $temp) {
+        Write-Host "Starting LOLDrivers-client..." -ForegroundColor Cyan
+        & "$extractDir\LOLDrivers-client.exe"
+    } else {
+        Write-Host "[+] Downloaded to $(Join-Path $extractDir $fileName)" -ForegroundColor Green
+    }
 }
 catch {
     Write-Host "Error: $_" -ForegroundColor Red

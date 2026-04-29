@@ -16,10 +16,13 @@
 Copy and paste the command below into a PowerShell terminal. This does not require an elevated (Administrator) shell.
 
 ```ps1
-# Downloads the client to the current directory
+# Download
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/rtfmkiesel/loldrivers-client/refs/heads/main/run.ps1)))
 
-# Downloads, runs and deletes the client (temp, default options)
+# Download and run
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/rtfmkiesel/loldrivers-client/refs/heads/main/run.ps1))) -run
+
+# Download to TEMP, run, and delete
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/rtfmkiesel/loldrivers-client/refs/heads/main/run.ps1))) -temp
 ```
 
