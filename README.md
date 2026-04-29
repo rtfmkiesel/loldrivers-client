@@ -50,6 +50,8 @@ Usage of LOLDrivers-client.exe:
         size limit for files to scan in MB (default 10)
   -mode string
         operating mode {online, file, embedded} (default "online")
+  -nocolor
+        do not print colored output
   -output string
         output mode {standard,grep,json} (default "standard")
   -target string

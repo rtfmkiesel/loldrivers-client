@@ -6,7 +6,10 @@ import (
 	"strings"
 )
 
-var PrintDebug bool
+var (
+	PrintDebug bool
+	NoColor    bool
+)
 
 func Stdout(s string, args ...any)  { fmt.Fprintf(os.Stdout, s, args...) }
 func Stderr(s string, args ...any)  { fmt.Fprintf(os.Stderr, s, args...) }
@@ -28,15 +31,19 @@ func log(level, s string, args ...any) {
 		msg += "\n"
 	}
 
-	levelColor := "\033[37m"
-	switch level {
-	case "INF":
-		levelColor = "\033[32m" // green
-	case "WAR":
-		levelColor = "\033[33m" // yellow
-	case "ERR", "FTL":
-		levelColor = "\033[31m" // red
-	}
+	if !NoColor {
+		levelColor := "\033[37m"
+		switch level {
+		case "INF":
+			levelColor = "\033[32m" // green
+		case "WAR":
+			levelColor = "\033[33m" // yellow
+		case "ERR", "FTL":
+			levelColor = "\033[31m" // red
+		}
 
-	fmt.Fprintf(os.Stdout, "%s[%s]\033[0m %s", levelColor, level, msg)
+		fmt.Fprintf(os.Stdout, "%s[%s]\033[0m %s", levelColor, level, msg)
+	} else {
+		fmt.Fprintf(os.Stdout, "[%s] %s", level, msg)
+	}
 }
