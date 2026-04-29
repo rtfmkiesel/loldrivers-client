@@ -1,1 +1,0 @@
-Invoke-WebRequest -Uri https://www.loldrivers.io/api/drivers.json -OutFile ./pkg/loldrivers/drivers.json

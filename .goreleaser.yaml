@@ -1,18 +1,16 @@
 version: 2
 env:
-  - CGO_ENABLED=1
-  - GO111MODULE=on
+  - CGO_ENABLED=0
 
 before:
   hooks:
-    - go mod tidy
-    - go test ./pkg/loldrivers/ -v -cover
+    - go generate ./internal/loldrivers/
+    - go test ./internal/loldrivers/
 builds:
   - id: windows
     ldflags:
       - -s -w
     binary: 'LOLDrivers-client'
-    main: ./cmd/loldrivers-client/loldrivers-client.go
     goos:
       - windows
     goarch:
