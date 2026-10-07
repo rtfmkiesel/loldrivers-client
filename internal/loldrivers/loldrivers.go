@@ -11,12 +11,7 @@ import (
 	"github.com/rtfmkiesel/loldrivers-client/internal/logger"
 )
 
-//go:generate curl -O https://www.loldrivers.io/api/drivers.json
-
 var (
-	//go:embed drivers.json
-	embeddedDriversJson []byte
-
 	md5Sums  = make(map[string]*Driver)
 	sha1Sums = make(map[string]*Driver)
 	sha2Sums = make(map[string]*Driver)
@@ -31,7 +26,11 @@ func LoadDrivers(mode string, path string) error {
 		case "file":
 			return os.ReadFile(path)
 		case "embedded":
-			return embeddedDriversJson, nil
+			driversRaw, err := getEmbeddedDrivers()
+			if err != nil {
+				return nil, err
+			}
+			return driversRaw, nil
 		default:
 			return nil, fmt.Errorf("invalid mode")
 		}

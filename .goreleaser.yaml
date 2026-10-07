@@ -16,12 +16,34 @@ builds:
     goarch:
       - amd64
       - arm64
+  - id: windows_embedded
+    ldflags:
+      - -s -w
+    binary: 'LOLDrivers-client_embedded'
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    tags:
+      - embedded
 
 archives:
-  - 
-    formats: zip
-    name_template: >-
-      LOLDrivers-client_Windows_{{ .Arch }}
+  - id: windows
+    ids:
+      - windows
+    formats:
+      - zip
+    name_template: 'LOLDrivers-client_Windows_{{ .Arch }}'
+    files:
+      - "README.md"
+      - "LICENSE"
+  - id: windows_embedded
+    ids:
+      - windows_embedded
+    formats:
+      - zip
+    name_template: 'LOLDrivers-client_Windows_{{ .Arch }}_embedded'
     files:
       - "README.md"
       - "LICENSE"

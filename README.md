@@ -25,18 +25,26 @@ Copy and paste the command below into a PowerShell terminal. This does not requi
 
 ### Download
 
-Download the prebuilt binaries [from GitHub](https://github.com/rtfmkiesel/loldrivers-client/releases).
+Download the prebuilt binaries [from GitHub](https://github.com/rtfmkiesel/loldrivers-client/releases).  
+
+The `*_embedded.zip` version contains an embedded [drivers.json](https://www.loldrivers.io/api/drivers.json) for offline usability. This may be used with `-mode embedded`. The age of the JSON data is determined by the last release date.
 
 ### Build From Source
 
 ```sh
-# requires Golang >=1.26
+# Requires Golang >=1.26 and a Linux env
+# For Windows, adjust the go:generate command in internal\loldrivers\drivers_embedded.go
 
 git clone https://github.com/rtfmkiesel/loldrivers-client
 cd loldrivers-client
+
 go generate ./internal/loldrivers/
 go test ./internal/loldrivers/
+
+# normal
 go build -o LOLDrivers-client.exe -ldflags="-s -w" .
+# embedded
+go build -o LOLDrivers-client_embedded.exe -ldflags="-s -w" -tags embedded .
 ```
 ## Usage
 
