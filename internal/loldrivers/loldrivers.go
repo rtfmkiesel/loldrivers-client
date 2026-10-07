@@ -11,6 +11,8 @@ import (
 	"github.com/rtfmkiesel/loldrivers-client/internal/logger"
 )
 
+//go:generate curl -O https://www.loldrivers.io/api/drivers.json
+
 var (
 	md5Sums  = make(map[string]*Driver)
 	sha1Sums = make(map[string]*Driver)

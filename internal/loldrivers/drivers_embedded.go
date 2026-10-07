@@ -6,8 +6,6 @@ import (
 	_ "embed"
 )
 
-//go:generate curl -O https://www.loldrivers.io/api/drivers.json
-
 var (
 	//go:embed drivers.json
 	embeddedDriversJson []byte
