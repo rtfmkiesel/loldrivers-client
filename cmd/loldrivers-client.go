@@ -28,7 +28,7 @@ func Run() error {
 		return err
 	}
 
-	if err = loldrivers.LoadDrivers(cfg.mode, cfg.localFile); err != nil {
+	if err = loldrivers.LoadDrivers(); err != nil {
 		return err
 	}
 

@@ -4,14 +4,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 
 	"github.com/rtfmkiesel/loldrivers-client/internal/logger"
 )
-
-//go:generate curl -O https://www.loldrivers.io/api/drivers.json
 
 var (
 	md5Sums  = make(map[string]*Driver)
@@ -19,26 +15,44 @@ var (
 	sha2Sums = make(map[string]*Driver)
 )
 
-func LoadDrivers(mode string, path string) error {
-	jsonBytes, err := func(mode, path string) ([]byte, error) {
-		logger.Debug("Loading drivers (mode=%s)", mode)
-		switch mode {
-		case "online":
-			return fetchDrivers()
-		case "file":
-			return os.ReadFile(path)
-		case "embedded":
-			driversRaw, err := getEmbeddedDrivers()
+const driverJsonPath = "./drivers.json"
+
+func LoadDrivers() error {
+	jsonBytes, err := func() ([]byte, error) {
+		if _, err := os.Stat(driverJsonPath); err == nil {
+			// ./drivers.json exists, load from disk
+			logger.Debug("Loading drivers from %s", driverJsonPath)
+			data, err := os.ReadFile(driverJsonPath)
 			if err != nil {
 				return nil, err
 			}
-			return driversRaw, nil
-		default:
-			return nil, fmt.Errorf("invalid mode")
+
+			return data, nil
 		}
-	}(mode, path)
+
+		// drivers.json does not exist, fetch the raw bytes
+		// either from the web or embedded
+		data, err := getRawDrivers()
+		if err != nil {
+			return nil, err
+		}
+
+		// Save as ./drivers.json
+		fh, err := os.Create(driverJsonPath)
+		if err != nil {
+			return nil, err
+		}
+		defer fh.Close()
+
+		if _, err := fh.Write(data); err != nil {
+			return nil, err
+		}
+		logger.Debug("Saved drivers to %s", driverJsonPath)
+
+		return data, nil
+	}()
 	if err != nil {
-		return fmt.Errorf("load drivers: mode=%s: %w", mode, err)
+		return fmt.Errorf("load drivers: %w", err)
 	}
 
 	drivers := []*Driver{}
@@ -63,29 +77,6 @@ func LoadDrivers(mode string, path string) error {
 	logger.Debug("Prepared checksums (md5=%d,sha1=%d,sha2=%d)", len(md5Sums), len(sha1Sums), len(sha2Sums))
 
 	return nil
-}
-
-func fetchDrivers() ([]byte, error) {
-	c := &http.Client{}
-	req, err := http.NewRequest("GET", "https://www.loldrivers.io/api/drivers.json", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("User-Agent", "LOLDrivers-client")
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close() //nolint:errcheck
-
-	jsonBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	logger.Debug("Downloaded %d bytes", len(jsonBytes))
-
-	return jsonBytes, nil
 }
 
 func FindDriverByHash(hash string) (bool, *Driver) {

@@ -28,3 +28,4 @@ go.work
 
 dist/
 internal/loldrivers/drivers.json
+drivers.json

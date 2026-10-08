@@ -4,8 +4,8 @@ package loldrivers
 
 import "testing"
 
-func TestEmbeddedlParse(t *testing.T) {
-	if err := LoadDrivers("embedded", ""); err != nil {
+func TestEmbeddedParse(t *testing.T) {
+	if err := LoadDrivers(); err != nil {
 		t.Error(err)
 	}
 }

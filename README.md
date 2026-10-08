@@ -13,7 +13,7 @@
 
 ### Command Line
 
-Copy and paste the command below into a PowerShell terminal. This does not require an elevated (Administrator) shell.
+Copy and paste the command below into a PowerShell terminal. **This does not require an elevated (Administrator) shell.**
 
 ```ps1
 # Downloads the client to the current directory
@@ -27,37 +27,33 @@ Copy and paste the command below into a PowerShell terminal. This does not requi
 
 Download the prebuilt binaries [from GitHub](https://github.com/rtfmkiesel/loldrivers-client/releases).  
 
-The `*_embedded.zip` version contains an embedded [drivers.json](https://www.loldrivers.io/api/drivers.json) for offline usability. This may be used with `-mode embedded`. The age of the JSON data is determined by the last release date.
+The `*_embedded.zip` version has an embedded [drivers.json](https://www.loldrivers.io/api/drivers.json) file for offline usability. The age of the JSON file is determined by the last build/release date. Please note, this file [might get flagged as malware](https://github.com/rtfmkiesel/loldrivers-client/issues/4).
 
 ### Build From Source
 
 ```sh
-# Requires Golang >=1.26 and a Linux env
-# For Windows, adjust the go:generate command in internal\loldrivers\drivers_embedded.go
+# Requires Golang >=1.27 and a Linux env
+# When using Windows, change 'curl' to 'curl.exe' in 'internal\loldrivers\drivers_embedded.go'
 
 git clone https://github.com/rtfmkiesel/loldrivers-client
 cd loldrivers-client
 
 go generate ./internal/loldrivers/
-go test ./internal/loldrivers/
 
 # normal
 go build -o LOLDrivers-client.exe -ldflags="-s -w" .
 # embedded
 go build -o LOLDrivers-client_embedded.exe -ldflags="-s -w" -tags embedded .
 ```
+
 ## Usage
 
 ```
 Usage of LOLDrivers-client.exe:
   -debug
         print debug output (will mess up 'grep' and 'json' output)
-  -file string
-        /path/to/drivers.json (only for '-mode file')
   -maxsize int
         size limit for files to scan in MB (default 10)
-  -mode string
-        operating mode {online, file, embedded} (default "online")
   -nocolor
         do not print colored output
   -output string
