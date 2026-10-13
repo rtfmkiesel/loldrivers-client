@@ -17,9 +17,8 @@ type config struct {
 func parseConfig() (*config, error) {
 	c := &config{}
 	flag.IntVar(&c.workerCount, "workers", 20, "number of parallel scan workers")
-	flag.BoolVar(&logger.PrintDebug, "debug", false, "print debug output (will mess up 'grep' and 'json' output)")
 	flag.BoolVar(&logger.NoColor, "nocolor", false, "do not print colored output")
-	target := flag.String("target", "", "target directory (default=OS)")
+	target := flag.String("target", "", "target directory (default OS)")
 	limitMb := flag.Int64("maxsize", 10, "size limit for files to scan in MB")
 	output := flag.String("output", "standard", "output mode {standard,grep,json}")
 	flag.Parse()
@@ -38,7 +37,10 @@ func parseConfig() (*config, error) {
 	c.maxSize = *limitMb * 1024 * 1024 // MB to bytes
 
 	switch *output {
-	case "standard", "grep", "json":
+	case "standard":
+		c.outputmode = *output
+	case "grep", "json":
+		logger.Silent = true
 		c.outputmode = *output
 	default:
 		return nil, fmt.Errorf("config: invalid '-output'")
@@ -46,13 +48,16 @@ func parseConfig() (*config, error) {
 
 	if c.outputmode == "standard" {
 		logger.Stderr(`
-╔─────────────────────────────────────╗
-│    LOLDrivers-client                │
-│    https://www.loldrivers.io        │
-|                                     |
-|    made by                          |
-|    https://github.com/rtfmkiesel    |
-╚─────────────────────────────────────╝
+┌─────────────────────────────────────────────────────────────────────┐
+│ ____   ___________   _____  ______________ ________________________ │
+│ 7  7   7     77  7   7    \ 7  _  77  77  V  77     77  _  77     7 │
+│ |  |   |  7  ||  |   |  7  ||    _||  ||  |  ||  ___!|    _||  ___! │
+│ |  !___|  |  ||  !___|  |  ||  _ \ |  ||  !  ||  __|_|  _ \ !__   7 │
+│ |     7|  !  ||     7|  !  ||  7  ||  ||     ||     7|  7  |7     | │
+│ !_____!!_____!!_____!!_____!!__!__!!__!!_____!!_____!!__!__!!_____! │
+│                                                                     │
+│           https://github.com/rtfmkiesel/loldrivers-client           │
+└─────────────────────────────────────────────────────────────────────┘
 
 `)
 	}

@@ -21,7 +21,7 @@ func LoadDrivers() error {
 	jsonBytes, err := func() ([]byte, error) {
 		if _, err := os.Stat(driverJsonPath); err == nil {
 			// ./drivers.json exists, load from disk
-			logger.Debug("Loading drivers from %s", driverJsonPath)
+			logger.Info("Loading drivers from %s", driverJsonPath)
 			data, err := os.ReadFile(driverJsonPath)
 			if err != nil {
 				return nil, err
@@ -30,14 +30,15 @@ func LoadDrivers() error {
 			return data, nil
 		}
 
-		// drivers.json does not exist, fetch the raw bytes
-		// either from the web or embedded
+		// ./drivers.json does not exist,
+		// fetch the raw bytes
+		// depending on build tags
 		data, err := getRawDrivers()
 		if err != nil {
 			return nil, err
 		}
 
-		// Save as ./drivers.json
+		// Save as ./drivers.json for caching
 		fh, err := os.Create(driverJsonPath)
 		if err != nil {
 			return nil, err
@@ -47,7 +48,7 @@ func LoadDrivers() error {
 		if _, err := fh.Write(data); err != nil {
 			return nil, err
 		}
-		logger.Debug("Saved drivers to %s", driverJsonPath)
+		logger.Info("Saved drivers to %s", driverJsonPath)
 
 		return data, nil
 	}()
@@ -59,7 +60,7 @@ func LoadDrivers() error {
 	if err := json.Unmarshal(jsonBytes, &drivers); err != nil {
 		return fmt.Errorf("load drivers: unmarshal json: %w", err)
 	}
-	logger.Debug("Loaded a total of %d drivers", len(drivers))
+	logger.Info("Loaded a total of %d drivers", len(drivers))
 
 	for _, driver := range drivers {
 		for _, sample := range driver.KnownVulnerableSamples {
@@ -74,7 +75,7 @@ func LoadDrivers() error {
 			}
 		}
 	}
-	logger.Debug("Prepared checksums (md5=%d,sha1=%d,sha2=%d)", len(md5Sums), len(sha1Sums), len(sha2Sums))
+	logger.Info("Prepared checksums (md5=%d,sha1=%d,sha2=%d)", len(md5Sums), len(sha1Sums), len(sha2Sums))
 
 	return nil
 }

@@ -11,7 +11,7 @@ import (
 
 // In the default version we download drivers.json at runtime.
 func getRawDrivers() ([]byte, error) {
-	logger.Debug("Downloading driver data")
+	logger.Info("Downloading driver data")
 
 	c := &http.Client{}
 	req, err := http.NewRequest("GET", "https://www.loldrivers.io/api/drivers.json", nil)
@@ -30,7 +30,7 @@ func getRawDrivers() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug("Downloaded %d bytes", len(jsonBytes))
+	logger.Info("Downloaded %d bytes", len(jsonBytes))
 
 	return jsonBytes, nil
 }

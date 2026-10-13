@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/rtfmkiesel/loldrivers-client/internal/checksum"
@@ -36,7 +37,7 @@ func Run() error {
 	chanResults := make(chan *result)
 	wgChecksums := new(sync.WaitGroup)
 
-	for i := 1; i <= cfg.workerCount; i++ {
+	for range cfg.workerCount {
 		wgChecksums.Go(func() {
 			for file := range chanFiles {
 				for _, hashAlg := range checksum.Algorithms {
@@ -53,16 +54,20 @@ func Run() error {
 							Url:      "https://loldrivers.io/drivers/" + driver.ID,
 							Driver:   driver,
 						}
-						break // Found a match, skip remaining hashes
+
+						break // Found a match, skip remaining hash types
 					}
 				}
 			}
 		})
 	}
 
+	counter := atomic.Int64{}
 	wgOutput := new(sync.WaitGroup)
 	wgOutput.Go(func() {
 		for result := range chanResults {
+			counter.Add(1)
+
 			switch cfg.outputmode {
 			case "standard":
 				logger.Warning("MATCHED %s\n\tFILE: %s\n\tURL: %s", result.Hash, result.Filepath, result.Url)
@@ -79,7 +84,7 @@ func Run() error {
 	})
 
 	for _, dir := range cfg.targets {
-		logger.Debug("Scanning %s", dir)
+		logger.Info("Scanning %s", dir)
 
 		if err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
@@ -111,6 +116,6 @@ func Run() error {
 	close(chanResults)
 	wgOutput.Wait()
 
-	logger.Debug("Finished in %s", time.Since(start))
+	logger.Info("Found %d LOLDriver(s) in %s", counter.Load(), time.Since(start))
 	return nil
 }

@@ -23,6 +23,6 @@ var (
 // Most likely this is because of specific strings in drivers.json as
 // such embedded resources can be read directly. (not like regular Go strings)
 func getRawDrivers() ([]byte, error) {
-	logger.Debug("Loading embedded drivers")
+	logger.Info("Loading embedded drivers")
 	return embeddedDriversJson, nil
 }
