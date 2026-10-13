@@ -50,8 +50,6 @@ go build -o LOLDrivers-client_embedded.exe -ldflags="-s -w" -tags embedded .
 
 ```
 Usage of LOLDrivers-client.exe:
-  -debug
-        print debug output (will mess up 'grep' and 'json' output)
   -maxsize int
         size limit for files to scan in MB (default 10)
   -nocolor
@@ -59,7 +57,7 @@ Usage of LOLDrivers-client.exe:
   -output string
         output mode {standard,grep,json} (default "standard")
   -target string
-        target directory (default=OS)
+        target directory (default OS)
   -workers int
         number of parallel scan workers (default 20)
 ```
